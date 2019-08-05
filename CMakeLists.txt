@@ -11,15 +11,16 @@ find_package(GMP REQUIRED)
 find_package(MPFR REQUIRED)
 find_package(CUNIT REQUIRED)
 
+add_subdirectory(crypto_project)
 add_subdirectory(nfl)
 
-include_directories(include nfl/include)
+include_directories(include nfl/include crypto_project/include)
 
 file(GLOB RLWEOT_HDRS_0 include/*.hpp)
 
 install(FILES ${RLWEOT_HDRS_0} DESTINATION include)
 
 add_executable(main src/main.cpp)
-target_link_libraries(main nfllib_static ${GMP_LIBRARY} ${MPFR_LIBRARY} ${CUNIT_LIBRARY})
+target_link_libraries(main nfllib_static cryptolib_static ${GMP_LIBRARY} ${MPFR_LIBRARY} ${CUNIT_LIBRARY})
 
 

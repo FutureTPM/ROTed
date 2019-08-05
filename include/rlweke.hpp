@@ -1,3 +1,5 @@
+#ifndef __RLWEKE_HPP__
+#define __RLWEKE_HPP__
 #include <nfl.hpp>
 #include <cstdint>
 
@@ -136,3 +138,5 @@ struct bob_ke_t
     ke_t<P>::mod2(sk, kB, signal);
   }
 };
+
+#endif

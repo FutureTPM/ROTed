@@ -3,15 +3,26 @@
 #include "rlweot.hpp"
 #include <cstdlib>
 #include <cstdint>
+#include <algorithm>
 
 #ifndef M_PI
 #define M_PI           3.14159265358979323846
 #endif
 
+template<typename P>
+bool pol_equal(const P &a, const P&b)
+{
+  bool equal = true;
+  for (size_t i = 0; i < P::degree; i++)
+    equal = equal && (a(0, i) == b(0, i));
+
+  return equal;
+}
+
 void ke_test()
 {
   const size_t numtests = 10;
-  using P = nfl::poly<uint16_t, 512, 1>;
+  using P = nfl::poly<uint32_t, 512, 1>;
   nfl::uniform unif;
 
   for (int i = 0; i < numtests; i++)
@@ -25,14 +36,14 @@ void ke_test()
       bob.msg(pB, signal, pA, m);
       alice.reconciliate(pB, signal);
 
-      CU_ASSERT(alice.sk == bob.sk);
+      CU_ASSERT(pol_equal(alice.sk, bob.sk));
     }
 }
 
 void ot_test()
 {
-  const size_t numtests = 10;
-  using P = nfl::poly<uint16_t, 512, 1>;
+  const size_t numtests = 100;
+  using P = nfl::poly<uint32_t, 512, 1>;
   constexpr size_t rbytes = 16;
   constexpr size_t bbytes = 16;
   nfl::uniform unif;
@@ -68,20 +79,106 @@ void ot_test()
 				      signal0, signal1,
 				      a0, a1,
 				      u0, u1);
-      success = success && bob.msg2(c0, c1, ch, msg0, msg1);
-      alice.msg3(msgb, c0, c1);
+      if (b == 0)
+	{
+	  CU_ASSERT(pol_equal(alice.skR, bob.skS0));
+	  CU_ASSERT(std::equal(&alice.bskR[0],
+			       &alice.bskR[bbytes],
+			       &bob.bskS0[0]));
+	  CU_ASSERT(std::equal(&alice.xb[0],
+			       &alice.xb[rbytes],
+			       &bob.w0[0]));
+	  CU_ASSERT(std::equal(&alice.bxb[0],
+			       &alice.bxb[rbytes],
+			       &bob.bw0[0]));
+	  
+	  CU_ASSERT(std::equal(&alice.xbb[0],
+			       &alice.xbb[rbytes],
+			       &bob.w1[0]));
+	  CU_ASSERT(std::equal(&alice.bskRbb[0],
+			       &alice.bskRbb[bbytes],
+			       &bob.bskS1[0]));
+	  CU_ASSERT(std::equal(&alice.ybb[0],
+			       &alice.ybb[rbytes],
+			       &bob.z1[0]));
+
+	  CU_ASSERT(std::equal(&alice.yb[0],
+			       &alice.yb[rbytes],
+			       &bob.z0[0]));
+	}
+      else
+	{
+	  CU_ASSERT(pol_equal(alice.skR, bob.skS1));
+	  CU_ASSERT(std::equal(&alice.bskR[0],
+			       &alice.bskR[bbytes],
+			       &bob.bskS1[0]));
+	  CU_ASSERT(std::equal(&alice.xb[0],
+			       &alice.xb[rbytes],
+			       &bob.w1[0]));
+	  CU_ASSERT(std::equal(&alice.bxb[0],
+			       &alice.bxb[rbytes],
+			       &bob.bw1[0]));
+	  
+	  CU_ASSERT(std::equal(&alice.xbb[0],
+			       &alice.xbb[rbytes],
+			       &bob.w0[0]));
+	  CU_ASSERT(std::equal(&alice.bskRbb[0],
+			       &alice.bskRbb[bbytes],
+			       &bob.bskS0[0]));
+	  CU_ASSERT(std::equal(&alice.ybb[0],
+			       &alice.ybb[rbytes],
+			       &bob.z0[0]));
+	  
+	  CU_ASSERT(std::equal(&alice.yb[0],
+			       &alice.yb[rbytes],
+			       &bob.z1[0]));
+	}
+      if (success)
+	{
+	  success = success && bob.msg2(c0, c1, ch, msg0, msg1);
+	}
+      if (success)
+	{
+	  alice.msg3(msgb, c0, c1);
+	}
 
       if (b == 0)
 	{
 	  success = success &&
-	    (memcmp(msgb, msg0, rbytes) == 0);
+	    (memcmp(&msgb[0], &msg0[0], rbytes) == 0);
 	}
       else
 	{
 	  success = success &&
-	    (memcmp(msgb, msg1, rbytes) == 1);
+	    (memcmp(&msgb[0], &msg1[0], rbytes) == 0);	  
 	}
       CU_ASSERT(success);
+    }
+}
+
+void symenc_test()
+{
+  const size_t numtests = 1000;
+  constexpr size_t pbytes = 14;
+  constexpr size_t rbytes = 8;
+  constexpr size_t bbytes = 16;
+  typedef typename sym_enc_t<pbytes, rbytes, bbytes>::cipher_t cipher_t;
+  sym_enc_t<pbytes, rbytes, bbytes> symenc;
+
+  for (size_t i = 0; i < numtests; i++)
+    {
+      uint8_t in[pbytes], r[rbytes], key[bbytes];
+      uint8_t out[pbytes];
+      cipher_t c;
+
+      nfl::fastrandombytes(in, pbytes);
+      nfl::fastrandombytes(r, rbytes);
+      nfl::fastrandombytes(key, bbytes);
+
+      symenc.SEnc(c, in, r, key);
+      symenc.SDec(out, c, key);
+
+      CU_ASSERT(std::equal(&in[0], &in[pbytes], &out[0]));
     }
 }
 
@@ -99,9 +196,17 @@ int main(int argc, char *argv[])
     }
 
   CU_pSuite suite2 = CU_add_suite("RLWEOT", NULL, NULL);
-  if (suite == NULL) abort();
+  if (suite2 == NULL) abort();
 
   if ((NULL == CU_add_test(suite2, "ot_test", ot_test)))
+    {
+      abort();
+    }
+  
+  CU_pSuite suite3 = CU_add_suite("symenc", NULL, NULL);
+  if (suite3 == NULL) abort();
+
+  if ((NULL == CU_add_test(suite3, "symenc_test", symenc_test)))
     {
       abort();
     }

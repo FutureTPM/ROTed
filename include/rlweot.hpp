@@ -1,11 +1,13 @@
 #ifndef __RLWEOT_HPP__
 #define __RLWEOT_HPP__
+#include <iostream>
+#include <algorithm>
+#include <iterator>
 #include "rlweke.hpp"
 #include "roms.hpp"
 #include <cstring>
 #include "symenc.hpp"
-#define CEILING(x,y) (((x) + (y) - 1) / (y))
-#define MIN(x,y) ((x) < (y) ? (x) : (y))
+#include "macros.hpp"
 
 template<typename P, size_t bbytes>
 void convPtoArray(uint8_t arr[bbytes], const P &pol)
@@ -115,6 +117,7 @@ struct alice_ot_t
 	  rom2_inputj[sizeof(sid) + (i>>3)] |
 	  (skR(0, i) << (i & 7));
       }
+    
     rom2(rom2_output, rom2_inputj, sizeof(sid) + CEILING(P::degree, 8));
 
     if (b == 0)
@@ -232,24 +235,24 @@ struct alice_ot_t
     memcpy(&rom4_input[0], &sid, sizeof(sid));
     if (b == 0)
       {
-	memcpy(&rom4_input[sid], &xb[0], rbytes);
-	memcpy(&rom4_input[sid + rbytes], &xbb[0], rbytes);
-	memcpy(&rom4_input[sid + 2*rbytes], &yb[0], rbytes);
-	memcpy(&rom4_input[sid + 3*rbytes], &ybb[0], rbytes);
+	memcpy(&rom4_input[sizeof(sid)], &xb[0], rbytes);
+	memcpy(&rom4_input[sizeof(sid) + rbytes], &xbb[0], rbytes);
+	memcpy(&rom4_input[sizeof(sid) + 2*rbytes], &yb[0], rbytes);
+	memcpy(&rom4_input[sizeof(sid) + 3*rbytes], &ybb[0], rbytes);
       }
     else
       {
-	memcpy(&rom4_input[sid], &xbb[0], rbytes);
-	memcpy(&rom4_input[sid + rbytes], &xb[0], rbytes);
-	memcpy(&rom4_input[sid + 2*rbytes], &ybb[0], rbytes);
-	memcpy(&rom4_input[sid + 3*rbytes], &yb[0], rbytes);
+	memcpy(&rom4_input[sizeof(sid)], &xbb[0], rbytes);
+	memcpy(&rom4_input[sizeof(sid) + rbytes], &xb[0], rbytes);
+	memcpy(&rom4_input[sizeof(sid) + 2*rbytes], &ybb[0], rbytes);
+	memcpy(&rom4_input[sizeof(sid) + 3*rbytes], &yb[0], rbytes);
       }
     rom4(rom4_output, rom4_input, sizeof(sid) + 4*rbytes);
 
     return true;
   }
 
-  void msg3(uint8_t msgb[rbytes], const cipher_t c0, const cipher_t c1)
+  void msg3(uint8_t msgb[rbytes], const cipher_t &c0, const cipher_t &c1)
   {
     uint8_t kb[bbytes];
     convPtoArray<P, bbytes>(kb, skR);
@@ -261,6 +264,7 @@ struct alice_ot_t
       {
 	sym_enc.SDec(msgb, c1, kb);
       }
+
   }
 };
 
@@ -325,7 +329,7 @@ struct bob_ot_t
     rom1(rom1_output, r_sid, rbytes + sizeof(uint32_t));
     p1 = p0 + h;
 
-    kS0 = sS * p0;
+    kS0 = p0 * sS;
     kS0.invntt_pow_invphi();
     kS0 = kS0 + eS1;
 
@@ -356,6 +360,7 @@ struct bob_ot_t
 	      rom2_inputj[sizeof(sid) + (i>>3)] |
 	      (skSj(0, i) << (i & 7));
 	  }
+
 	rom2(out, rom2_inputj, sizeof(sid) + CEILING(P::degree, 8));
       };
 
@@ -395,15 +400,15 @@ struct bob_ot_t
 
     uint8_t rom4_input[sizeof(sid) + 4*rbytes];
     memcpy(&rom4_input[0], &sid, sizeof(sid));
-    memcpy(&rom4_input[sid], &w0[0], rbytes);
-    memcpy(&rom4_input[sid + rbytes], &w1[0], rbytes);
-    memcpy(&rom4_input[sid + 2*rbytes], &z0[0], rbytes);
-    memcpy(&rom4_input[sid + 3*rbytes], &z1[0], rbytes);
+    memcpy(&rom4_input[sizeof(sid)], &w0[0], rbytes);
+    memcpy(&rom4_input[sizeof(sid) + rbytes], &w1[0], rbytes);
+    memcpy(&rom4_input[sizeof(sid) + 2*rbytes], &z0[0], rbytes);
+    memcpy(&rom4_input[sizeof(sid) + 3*rbytes], &z1[0], rbytes);
 
     rom4(rom4_output, rom4_input, sizeof(sid) + 4*rbytes);
   }
 
-  bool msg2(cipher_t c0, cipher_t c1, const uint8_t ch1[rbytes],
+  bool msg2(cipher_t &c0, cipher_t &c1, const uint8_t ch1[rbytes],
 	    const uint8_t msg0[rbytes], const uint8_t msg1[rbytes])
   {
     if (memcmp(ch, ch1, rbytes) != 0)

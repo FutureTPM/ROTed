@@ -20,20 +20,20 @@ struct params<uint16_t> {
   // The moduli used in each 16 bit block (14 bits long each)
   // They are of the form p = 2**14 - i*2*kMaxPolyDegree + 1 for increasing i
   static constexpr unsigned int kMaxNbModuli = 2;
-  static constexpr value_type P[kMaxNbModuli] = { 15361U, 13313U};
+  static constexpr value_type P[kMaxNbModuli] = { 15361U, 13313U };
 
   // The associated lower word of their Newton quotients
-  static constexpr value_type Pn[kMaxNbModuli] = { 17458U, 60470U};
+  static constexpr value_type Pn[kMaxNbModuli] = { 17458U, 60470U };
 
   static constexpr unsigned int kModulusBitsize = 14;
   static constexpr unsigned int kModulusRepresentationBitsize = 16;
 
   // A primitive 2*kMaxNbModuli (i.e., 2**10) root of unity for each one of the moduli
-  static constexpr value_type primitive_roots[kMaxNbModuli] = { 4989U, 10076U};
+  static constexpr value_type primitive_roots[kMaxNbModuli] = { 4989U, 10076U };
 
   // Inverses of kMaxPolyDegree (for the other degrees it can be derived easily)
   // for the different moduli
-  static constexpr value_type invkMaxPolyDegree[kMaxNbModuli] = { 15331U, 13287U};
+  static constexpr value_type invkMaxPolyDegree[kMaxNbModuli] = { 15331U, 13287U };
 
   // Polynomial related data
   static constexpr unsigned int kMaxPolyDegree = 512;

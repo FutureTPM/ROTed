@@ -11,8 +11,7 @@ struct ke_t
   static constexpr signed_value_t q = P::get_modulus(0);
   static constexpr signed_value_t qov2 = q / 2;
   static constexpr signed_value_t qov4 = q / 4;
-  static constexpr signed_value_t qp1ov4 =
-    (q + 1) / 4;
+  static constexpr signed_value_t qp1ov4 = (q + 1) / 4;
   static constexpr size_t degree = P::degree;
 
   static unsigned char random_bit()
@@ -46,28 +45,25 @@ struct ke_t
 
 	    if (ki < -qp1ov4 || ki > qp1ov4)
 	      sig(0, i) = 1;
-	  }	
+	  }
 	break;
       default:
 	break;
       }
   }
 
-  static void mod2(P &sk, const P &k, const P &sig)
-  {
-    sk = (value_t)0;
-    for (int i = 0; i < degree; i++)
-      {
-	if (sig(0, i) == 1)
-	  {
-	    sk(0, i) = qov2;
-	  }
+  static void mod2(P &sk, const P &k, const P &sig) {
+      sk = (value_t)0;
+
+      for (int i = 0; i < degree; i++) {
+          if (sig(0, i) == 1) {
+              sk(0, i) = qov2;
+          }
       }
-    sk = sk + k;
-    
-    for (int i = 0; i < degree; i++)
-      {
-	sk(0, i) = sk(0, i) & 1;
+      sk = sk + k;
+      for (int i = 0; i < degree; i++) {
+          signed_value_t ski = (sk(0, i) <= qov2 ? sk(0, i) : (signed_value_t)sk(0, i) - q);
+          sk(0, i) = ski & 1;
       }
   }
 };
@@ -111,7 +107,7 @@ struct bob_ke_t
 {
   P sB, eB1, eB2, kB;
   P sk;
-  
+
   using value_t = typename P::value_type;
   nfl::FastGaussianNoise<uint8_t, value_t, 2> g_prng;
 

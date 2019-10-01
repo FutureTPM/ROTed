@@ -9,6 +9,9 @@
 #define M_PI           3.14159265358979323846
 #endif
 
+#define N 512
+#define K 8
+
 template<typename P>
 bool pol_equal(const P &a, const P&b)
 {
@@ -22,14 +25,14 @@ bool pol_equal(const P &a, const P&b)
 void ke_test()
 {
   const size_t numtests = 10;
-  using P = nfl::poly<uint32_t, 512, 1>;
+  using P = nfl::poly_from_modulus<uint16_t, N, 14>;
   nfl::uniform unif;
 
   for (int i = 0; i < numtests; i++)
     {
       P m = unif;
-      alice_ke_t<P> alice(8/sqrt(2*M_PI), 128, 512);
-      bob_ke_t<P> bob(8/sqrt(2*M_PI), 128, 512);
+      alice_ke_t<P> alice(sqrt((double)K/2.), 138, N);
+      bob_ke_t<P> bob(sqrt((double)K/2.), 138, N);
       P pA;
       P pB, signal;
       alice.msg(pA, m);
@@ -43,17 +46,17 @@ void ke_test()
 void ot_test()
 {
   const size_t numtests = 100;
-  using P = nfl::poly<uint32_t, 512, 1>;
+  using P = nfl::poly_from_modulus<uint16_t, N, 14>;
   constexpr size_t rbytes = 16;
   constexpr size_t bbytes = 16;
   nfl::uniform unif;
   typedef typename sym_enc_t<rbytes, rbytes, bbytes>::cipher_t cipher_t;
- 
+
   for (int i = 0; i < numtests; i++)
     {
       P m = unif;
-      alice_ot_t<P, rbytes, bbytes> alice(8/sqrt(2*M_PI), 128, 512);
-      bob_ot_t<P, rbytes, bbytes> bob(8/sqrt(2*M_PI), 128, 512);
+      alice_ot_t<P, rbytes, bbytes> alice(sqrt((double)K/2.), 138, N);
+      bob_ot_t<P, rbytes, bbytes> bob(sqrt((double)K/2.), 138, N);
       int b = i & 1;
       uint32_t sid = i;
       P p0, pS, signal0, signal1;
@@ -91,7 +94,7 @@ void ot_test()
 	  CU_ASSERT(std::equal(&alice.bxb[0],
 			       &alice.bxb[rbytes],
 			       &bob.bw0[0]));
-	  
+
 	  CU_ASSERT(std::equal(&alice.xbb[0],
 			       &alice.xbb[rbytes],
 			       &bob.w1[0]));
@@ -118,7 +121,7 @@ void ot_test()
 	  CU_ASSERT(std::equal(&alice.bxb[0],
 			       &alice.bxb[rbytes],
 			       &bob.bw1[0]));
-	  
+
 	  CU_ASSERT(std::equal(&alice.xbb[0],
 			       &alice.xbb[rbytes],
 			       &bob.w0[0]));
@@ -128,7 +131,7 @@ void ot_test()
 	  CU_ASSERT(std::equal(&alice.ybb[0],
 			       &alice.ybb[rbytes],
 			       &bob.z0[0]));
-	  
+
 	  CU_ASSERT(std::equal(&alice.yb[0],
 			       &alice.yb[rbytes],
 			       &bob.z1[0]));
@@ -150,7 +153,7 @@ void ot_test()
       else
 	{
 	  success = success &&
-	    (memcmp(&msgb[0], &msg1[0], rbytes) == 0);	  
+	    (memcmp(&msgb[0], &msg1[0], rbytes) == 0);
 	}
       CU_ASSERT(success);
     }
@@ -202,7 +205,7 @@ int main(int argc, char *argv[])
     {
       abort();
     }
-  
+
   CU_pSuite suite3 = CU_add_suite("symenc", NULL, NULL);
   if (suite3 == NULL) abort();
 
@@ -214,5 +217,5 @@ int main(int argc, char *argv[])
   CU_basic_set_mode(CU_BRM_VERBOSE);
   CU_basic_run_tests();
   CU_cleanup_registry();
-  return CU_get_error();  
-}  
+  return CU_get_error();
+}

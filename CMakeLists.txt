@@ -13,6 +13,7 @@ find_package(CUNIT REQUIRED)
 
 add_subdirectory(crypto_project)
 add_subdirectory(nfl)
+add_subdirectory(rel_art)
 
 include_directories(include nfl/include crypto_project/include)
 

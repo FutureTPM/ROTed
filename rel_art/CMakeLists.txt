@@ -5,9 +5,11 @@ find_package(OpenSSL REQUIRED)
 
 include_directories(include)
 
-file(GLOB RLWEOT_HDRS_0 include/*.hpp)
+file(GLOB RELART_HDRS_0 include/*.hpp)
 
-install(FILES ${REL_ART_HDRS_0} DESTINATION include)
+install(FILES ${RELART_HDRS_0} DESTINATION include)
 
-add_executable(main_rel src/main.cpp)
+file(GLOB RELART_SRC_0 src/*)
+
+add_executable(main_rel ${RELART_SRC_0})
 target_link_libraries(main_rel ${OPENSSL_LIBRARIES})

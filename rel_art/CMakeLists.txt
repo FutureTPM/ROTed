@@ -12,4 +12,4 @@ install(FILES ${RELART_HDRS_0} DESTINATION include)
 file(GLOB RELART_SRC_0 src/*)
 
 add_executable(main_rel ${RELART_SRC_0})
-target_link_libraries(main_rel ${OPENSSL_LIBRARIES})
+target_link_libraries(main_rel ${OPENSSL_LIBRARIES} ${CUNIT_LIBRARY})

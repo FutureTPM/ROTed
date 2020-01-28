@@ -7,8 +7,9 @@ struct ec_cry_t
   EC_POINT *g, *h, *g1, *h1;
   BIGNUM *x;
   ec_params_t &params;
+  int k;
 
-  ec_cry_t(ec_params_t &params1)
+  ec_cry_t(ec_params_t &params1, int k1)
     : params(params1)
   {
     g = NULL;
@@ -16,6 +17,56 @@ struct ec_cry_t
     g1 = NULL;
     h1 = NULL;
     x = NULL;
+    k = k1;
+  }
+
+  void encode(EC_POINT *p, BIGNUM *m)
+  {
+    BIGNUM *shifted_m = BN_dup(m);
+
+    BN_lshift(shifted_m, m, k);
+
+    while (EC_POINT_set_compressed_coordinates_GFp
+           (params.group, p, shifted_m, 0, params.ctx) != 1)
+      {
+        BN_add_word(shifted_m, 1);
+      }
+
+    BN_free(shifted_m);
+  }
+
+  void decode(BIGNUM *m, EC_POINT *p)
+  {
+    BIGNUM *y = BN_new();
+
+    EC_POINT_get_affine_coordinates_GFp
+      (params.group, p, m, y, params.ctx);
+    BN_rshift(m, m, k);
+
+    BN_free(y);
+  }
+
+  //in_g1 = in_g^x, in_h1 = in_h^x
+  void set_pk(EC_POINT *in_g,
+              EC_POINT *in_h,
+              EC_POINT *in_g1,
+              EC_POINT *in_h1)
+  {
+    EC_POINT_free(g);
+    EC_POINT_free(h);
+    EC_POINT_free(g1);
+    EC_POINT_free(h1);
+
+    g = EC_POINT_dup(in_g, params.group);
+    h = EC_POINT_dup(in_h, params.group);
+    g1 = EC_POINT_dup(in_g1, params.group);
+    h1 = EC_POINT_dup(in_h1, params.group);
+  }
+
+  void set_sk(BIGNUM *in_x)
+  {
+    BN_free(x);
+    x = BN_dup(in_x);
   }
 
   void keygen()
@@ -42,7 +93,7 @@ struct ec_cry_t
 
     params.point_mul(u, g, s);
     params.point_mul(aux, h, t);
-    params.point_add(u, u, aux); //h = g^s h^t
+    params.point_add(u, u, aux); //u = g^s h^t
 
     params.point_mul(v, g1, s);
     params.point_mul(aux, h1, t);
@@ -85,6 +136,8 @@ struct ec_cry_t
       x = BN_dup(other.x);
     else
       x = NULL;
+
+    k = other.k;
   }
 
   void swap(ec_cry_t &other)
@@ -94,6 +147,7 @@ struct ec_cry_t
     std::swap(g1, other.g1);
     std::swap(h1, other.h1);
     std::swap(x, other.x);
+    std::swap(k, other.k);
   }
 
   ec_cry_t &operator=(ec_cry_t other)

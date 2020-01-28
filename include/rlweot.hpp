@@ -282,7 +282,6 @@ struct bob_ot_t
   uint8_t bskS0[bbytes], bskS1[bbytes];
 
   uint8_t bw0[2*rbytes + bbytes], bw1[2*rbytes + bbytes];
-
   uint8_t ch[rbytes];
   
   using value_t = typename P::value_type;

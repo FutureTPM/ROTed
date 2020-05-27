@@ -24,6 +24,7 @@ struct muladd<T, simd::serial> {
   }
 };
 
+#if defined(__SIZEOF_INT128__)
 template<>
 struct muladd<uint64_t, simd::serial> {
   using simd_mode = simd::serial;
@@ -46,6 +47,7 @@ struct muladd<uint64_t, simd::serial> {
     return r;
   }
 };
+#endif
 
 // FMA using Shoup's precomputed approach again
 // Works only if yshoup = ((uint128_t) y << 64) / p (for T=uint64_t)

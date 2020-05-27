@@ -78,11 +78,16 @@ struct params<uint32_t> {
   static constexpr unsigned int kMaxPolyDegree = 32768;
 };
 
+#if defined(__SIZEOF_INT128__)
 // Specialization for 64 bits
 template<>
 struct params<uint64_t> {
 
+#if defined(__SIZEOF_INT128__)
   typedef unsigned int uint128_t __attribute__((mode(TI)));
+#else
+  typedef uint64_t uint128_t;
+#endif
 
 
   typedef uint64_t value_type;
@@ -117,6 +122,7 @@ struct params<uint64_t> {
 
 
 };
+#endif
 
 }
 

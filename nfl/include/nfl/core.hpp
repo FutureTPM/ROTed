@@ -243,7 +243,7 @@ void poly<T, Degree, NbModuli>::set(non_uniform const& mode) {
         }
       }
     }
-  } 
+  }
   else
   {
     for (unsigned int i = 0; i < degree; i++) {
@@ -303,10 +303,10 @@ void poly<T, Degree, NbModuli>::set(gaussian<in_class, T, _lu_depth> const& mode
   mode.fg_prng->getNoise((value_type *)rnd, degree);
 
   if (amplifier != 1) for (unsigned int i = 0; i < degree; i++) rnd[i]*= amplifier;
-  for (size_t cm = 0; cm < nmoduli; cm++) 
+  for (size_t cm = 0; cm < nmoduli; cm++)
   {
     for (size_t i = 0 ; i < degree; i++)
-    { 
+    {
       if(rnd[i]<0)
         _data[degree*cm+i] = get_modulus(cm) + rnd[i];
       else
@@ -339,7 +339,7 @@ void poly<T, Degree, NbModuli>::set(ZO_dist const& mode) {
     const T pm = params<T>::P[cm] - 1u;
     /* sample {-1, 0, 1} */
     for (size_t i = 0; i < Degree; ++i)
-      *ptr++ = rnd[i] <= mode.rho ? pm + (rnd[i] & 2) : 0u; 
+      *ptr++ = rnd[i] <= mode.rho ? pm + (rnd[i] & 2) : 0u;
   }
 }
 
@@ -357,7 +357,7 @@ void poly<T, Degree, NbModuli>::set(hwt_dist const& mode) {
   auto rnd_end = rnd.end();
   auto rnd_ptr = rnd_end;
   /* Reservoir Sampling: uniformly select hwt coefficients. */
-  for (size_t k = mode.hwt; k < degree; ++k) 
+  for (size_t k = mode.hwt; k < degree; ++k)
   {
     size_t pos = 0;
     size_t reject_sample = std::numeric_limits<size_t>::max() / k;
@@ -400,9 +400,9 @@ std::ostream& operator<<(std::ostream& outs, poly<T, Degree, NbModuli> const& p)
 {
   bool first = true;
   std::string term;
-  if (typeid(T) == typeid(uint64_t)) term = "ULL"; 
-  else if (typeid(T) == typeid(uint32_t)) term = "UL"; 
-  else term = "U"; 
+  if (typeid(T) == typeid(uint64_t)) term = "ULL";
+  else if (typeid(T) == typeid(uint32_t)) term = "UL";
+  else term = "U";
 
   outs << "{ ";
   for(auto v : p)

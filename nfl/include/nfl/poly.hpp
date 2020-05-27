@@ -125,7 +125,7 @@ public:
   void set(std::initializer_list<value_type> values, bool reduce_coeffs = true);
   template <class It> void set(It first, It last, bool reduce_coeffs = true);
   template <class in_class, unsigned _lu_depth> void set(gaussian<in_class, T, _lu_depth> const& mode);
-  
+
   /* assignment
    */
   poly& operator=(value_type v) { set(v); return *this; }
@@ -174,7 +174,7 @@ public:
   // Therefore, serialization should not be used in the rare cases a big-endian
   // machine will use NFLlib and communicate serialized data to a little-endian
   // machine.
-  
+
   /* manual serializers
   */
   void serialize_manually(std::ostream& outputstream) {
@@ -186,7 +186,7 @@ public:
 
   /* serializer (cereal)
   */
-  template<class Archive> void serialize(Archive & archive) { 
+  template<class Archive> void serialize(Archive & archive) {
     archive( _data ); // serialize coefficients by passing them to the archive
   }
 
@@ -281,7 +281,7 @@ public:
   poly(std::array<mpz_class, Degree> const& values);
   poly(std::initializer_list<mpz_t> const& values);
   poly(std::initializer_list<mpz_class> const& values);
-  
+
   void set_mpz(mpz_t const& v);
   void set_mpz(mpz_class const& v);
   void set_mpz(std::array<mpz_t, Degree> const& values);
@@ -289,7 +289,7 @@ public:
   void set_mpz(std::initializer_list<mpz_t> const& values);
   void set_mpz(std::initializer_list<mpz_class> const& values);
   template<class It> void set_mpz(It first, It last);
-  
+
   poly& operator=(mpz_t const& v) { set_mpz(v); return *this; }
   poly& operator=(mpz_class const& v) { set_mpz(v); return *this; }
   poly& operator=(std::array<mpz_t, Degree> const& values) { set_mpz(values); return *this; }
@@ -300,7 +300,7 @@ public:
   inline std::array<mpz_t, Degree> poly2mpz() { return gmp.poly2mpz(*this); };
   inline void poly2mpz(std::array<mpz_t, Degree> & array) { gmp.poly2mpz(array, *this); };
   inline void mpz2poly(std::array<mpz_t, Degree> const& array) { gmp.mpz2poly(*this, array); };
-  
+
   inline static constexpr size_t bits_in_moduli_product() { return gmp.bits_in_moduli_product; };
   inline static constexpr mpz_t& moduli_product() { return gmp.moduli_product; };
   inline static constexpr mpz_t& modulus_shoup() { return gmp.modulus_shoup; };

@@ -25,7 +25,7 @@ void fastrandombytes(unsigned char *r, unsigned long long rlen) {
     randombytes(key, crypto_stream_salsa20_KEYBYTES);
     init = 1;
   }
-  nfl_crypto_stream_salsa20_amd64_xmm6(r, rlen, nonce, key);
+  nfl_crypto_stream_salsa20(r, rlen, nonce, key);
 
   // Increase 64-bit counter (nonce)
   for (i = 0; i < crypto_stream_salsa20_NONCEBYTES; i++) n ^= ((unsigned long long)nonce[i]) << 8 * i;

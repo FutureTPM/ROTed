@@ -196,6 +196,7 @@ struct mulmod<T, simd::serial> {
   }
 };
 
+#if defined(__SIZEOF_INT128__)
 // Modular multiplication
 // (Specialization for 64-bit integers)
 template<>
@@ -217,6 +218,7 @@ struct mulmod<uint64_t, simd::serial> {
     return r;
   }
 };
+#endif
 
 // Modular multiplication: much faster alternative
 // Works only if yshoup = ((uint128_t) y << 64) / p (for T=uint64_t)
@@ -284,6 +286,10 @@ struct _make_op<shoup<type, tag0>, expr<mulmod<type, tag1>,Arg0, Arg1>, Arg2> {
 #ifdef NFL_OPTIMIZED
 
 #include "nfl/opt/ops.hpp"
+
+#if defined __ARM_NEON__ && defined NTT_NEON
+#include "nfl/opt/arch/neon.hpp"
+#endif
 
 #if defined __SSE4_2__ && defined NTT_SSE
 #include "nfl/opt/arch/sse.hpp"

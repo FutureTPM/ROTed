@@ -336,10 +336,10 @@
 # qhasm: enter nfl_crypto_stream_salsa20_amd64_xmm6
 .text
 .p2align 5
-.globl _nfl_crypto_stream_salsa20_amd64_xmm6
-.globl nfl_crypto_stream_salsa20_amd64_xmm6
-_nfl_crypto_stream_salsa20_amd64_xmm6:
-nfl_crypto_stream_salsa20_amd64_xmm6:
+.globl _nfl_crypto_stream_salsa20
+.globl nfl_crypto_stream_salsa20
+_nfl_crypto_stream_salsa20:
+nfl_crypto_stream_salsa20:
 mov %rsp,%r11
 and $31,%r11
 add $480,%r11

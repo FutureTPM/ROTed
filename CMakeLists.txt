@@ -17,7 +17,7 @@ add_subdirectory(rel_art)
 
 include_directories(include nfl/include crypto_project/include)
 
-file(GLOB RLWEOT_HDRS_0 include/*.hpp)
+file(GLOB RLWEOT_HDRS_0 include/*.hpp include/cpucycles.h)
 
 install(FILES ${RLWEOT_HDRS_0} DESTINATION include)
 

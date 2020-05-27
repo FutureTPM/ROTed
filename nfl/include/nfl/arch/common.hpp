@@ -1,7 +1,13 @@
 #ifndef NFL_ARCH_COMMON_HPP
 #define NFL_ARCH_COMMON_HPP
 
+#if defined __x86_64__ || defined __i386__
 #include <immintrin.h>
+#elif defined __arm__
+#include <arm_neon.h>
+#else
+#error Undetected arch
+#endif
 #include <utility>
 
 namespace nfl {

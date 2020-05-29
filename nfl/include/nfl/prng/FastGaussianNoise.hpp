@@ -121,17 +121,16 @@ extern __inline__ uint64_t rdtsc(void)
   __asm__ volatile ("rdtsc" : "=a" (a), "=d" (d));
   return (d<<32) | a;
 #elif defined __arm__
-  //unsigned cc;
-  //static int init = 0;
-  //if(!init) {
-  //    __asm__ __volatile__ ("mcr p15, 0, %0, c9, c12, 2" :: "r"(1<<31)); /* stop the cc */
-  //    __asm__ __volatile__ ("mcr p15, 0, %0, c9, c12, 0" :: "r"(5));     /* initialize */
-  //    __asm__ __volatile__ ("mcr p15, 0, %0, c9, c12, 1" :: "r"(1<<31)); /* start the cc */
-  //    init = 1;
-  //}
-  //__asm__ __volatile__ ("mrc p15, 0, %0, c9, c13, 0" : "=r"(cc));
-  //return cc;
-  return 0;
+  unsigned cc;
+  static int init = 0;
+  if(!init) {
+      __asm__ __volatile__ ("mcr p15, 0, %0, c9, c12, 2" :: "r"(1<<31)); /* stop the cc */
+      __asm__ __volatile__ ("mcr p15, 0, %0, c9, c12, 0" :: "r"(5));     /* initialize */
+      __asm__ __volatile__ ("mcr p15, 0, %0, c9, c12, 1" :: "r"(1<<31)); /* start the cc */
+      init = 1;
+  }
+  __asm__ __volatile__ ("mrc p15, 0, %0, c9, c13, 0" : "=r"(cc));
+  return cc;
 #endif
 }
 

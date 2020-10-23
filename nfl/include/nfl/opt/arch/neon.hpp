@@ -51,7 +51,7 @@ struct neon
     static constexpr size_t value = 16/sizeof(T);
   };
 
-  static constexpr int mode = 1;
+  static constexpr int mode = 3;
 };
 
 } // simd

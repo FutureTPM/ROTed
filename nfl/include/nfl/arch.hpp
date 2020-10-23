@@ -6,7 +6,10 @@
 #ifdef NFL_OPTIMIZED
 #pragma message ( "Compiling with NFL_OPTIMIZED" )
 
-#if defined __AVX2__ && defined NTT_AVX2
+#if defined __AVX512F__ && defined __AVX512BW__ && defined __AVX512DQ__ && defined __AVX512CD__ && defined __AVX512VL__ && defined NTT_AVX512
+#pragma message ( "Compiling with AVX512 directives" )
+#define CC_SIMD nfl::simd::avx512
+#elif defined __AVX2__ && defined NTT_AVX2
 #pragma message ( "Compiling with AVX2 directives" )
 #define CC_SIMD nfl::simd::avx2
 #elif defined __SSE4_2__ && defined NTT_SSE

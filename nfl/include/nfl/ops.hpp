@@ -291,12 +291,16 @@ struct _make_op<shoup<type, tag0>, expr<mulmod<type, tag1>,Arg0, Arg1>, Arg2> {
 #include "nfl/opt/arch/neon.hpp"
 #endif
 
-#if defined __SSE4_2__ && defined NTT_SSE
-#include "nfl/opt/arch/sse.hpp"
+#if defined __AVX512F__ && defined __AVX512BW__ && defined __AVX512DQ__ && defined __AVX512CD__ && defined __AVX512VL__ && defined NTT_AVX512
+#include "nfl/opt/arch/avx512.hpp"
 #endif
 
 #if defined __AVX2__ && defined NTT_AVX2
 #include "nfl/opt/arch/avx2.hpp"
+#endif
+
+#if defined __SSE4_2__ && defined NTT_SSE
+#include "nfl/opt/arch/sse.hpp"
 #endif
 
 #endif

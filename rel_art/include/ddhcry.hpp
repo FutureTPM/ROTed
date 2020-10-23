@@ -20,14 +20,16 @@ struct ec_cry_t
     k = k1;
   }
 
-  void encode(EC_POINT *p, BIGNUM *m)
+  inline void encode(EC_POINT *p, BIGNUM *m)
   {
     BIGNUM *shifted_m = BN_dup(m);
 
     BN_lshift(shifted_m, m, k);
 
-    while (EC_POINT_set_compressed_coordinates_GFp
-           (params.group, p, shifted_m, 0, params.ctx) != 1)
+    while (
+            EC_POINT_set_compressed_coordinates_GFp(params.group, p,
+                                                    shifted_m, 0,
+                                                    params.ctx) != 1)
       {
         BN_add_word(shifted_m, 1);
       }
@@ -35,38 +37,37 @@ struct ec_cry_t
     BN_free(shifted_m);
   }
 
-  void decode(BIGNUM *m, EC_POINT *p)
+  inline void decode(BIGNUM *m, EC_POINT *p)
   {
     BIGNUM *y = BN_new();
 
-    EC_POINT_get_affine_coordinates_GFp
-      (params.group, p, m, y, params.ctx);
+    EC_POINT_get_affine_coordinates_GFp(params.group, p, m, y, params.ctx);
     BN_rshift(m, m, k);
 
     BN_free(y);
   }
 
   //in_g1 = in_g^x, in_h1 = in_h^x
-  void set_pk(EC_POINT *in_g,
+  inline void set_pk(EC_POINT *in_g,
               EC_POINT *in_h,
               EC_POINT *in_g1,
               EC_POINT *in_h1)
   {
-    EC_POINT_free(g);
-    EC_POINT_free(h);
-    EC_POINT_free(g1);
-    EC_POINT_free(h1);
+    //EC_POINT_free(g);
+    //EC_POINT_free(h);
+    //EC_POINT_free(g1);
+    //EC_POINT_free(h1);
 
-    g = EC_POINT_dup(in_g, params.group);
-    h = EC_POINT_dup(in_h, params.group);
-    g1 = EC_POINT_dup(in_g1, params.group);
-    h1 = EC_POINT_dup(in_h1, params.group);
+    g = in_g; // EC_POINT_dup(in_g, params.group);
+    h = in_h; // EC_POINT_dup(in_h, params.group);
+    g1 = in_g1; // EC_POINT_dup(in_g1, params.group);
+    h1 = in_g1; // EC_POINT_dup(in_h1, params.group);
   }
 
-  void set_sk(BIGNUM *in_x)
+  inline void set_sk(BIGNUM *in_x)
   {
     BN_free(x);
-    x = BN_dup(in_x);
+    x = in_x;
   }
 
   void keygen()
@@ -104,13 +105,13 @@ struct ec_cry_t
     BN_free(t);
   }
 
-  void encrypt(EC_POINT *u, EC_POINT *v, EC_POINT *m)
+  inline void encrypt(EC_POINT *u, EC_POINT *v, EC_POINT *m)
   {
     randomise(u, v); //v = u^x
     params.point_add(v, v, m); //v = u^x m
   }
 
-  void decrypt(EC_POINT *m, EC_POINT *u, EC_POINT *v)
+  inline void decrypt(EC_POINT *m, EC_POINT *u, EC_POINT *v)
   {
     params.point_mul(u, u, x);
     params.point_inv(u);
@@ -120,23 +121,12 @@ struct ec_cry_t
   ec_cry_t(const ec_cry_t &other)
     : params(other.params)
   {
-    auto copy_if_not_null = [&] (EC_POINT *&p, EC_POINT *p1) -> void
-    {
-      if (p1 != NULL)
-        p = EC_POINT_dup(p1, this->params.group);
-      else
-        p = NULL;
-    };
-    copy_if_not_null(g, other.g);
-    copy_if_not_null(h, other.h);
-    copy_if_not_null(g1, other.g1);
-    copy_if_not_null(h1, other.h1);
+    g = EC_POINT_dup(other.g, this->params.group);
+    h = EC_POINT_dup(other.h, this->params.group);
+    g1 = EC_POINT_dup(other.g1, this->params.group);
+    h1 = EC_POINT_dup(other.h1, this->params.group);
 
-    if (other.x != NULL)
-      x = BN_dup(other.x);
-    else
-      x = NULL;
-
+    x = BN_dup(other.x);
     k = other.k;
   }
 
@@ -159,13 +149,13 @@ struct ec_cry_t
 
   void cleanup()
   {
-    EC_POINT_free(g);
+    //EC_POINT_free(g);
     g = NULL;
-    EC_POINT_free(h);
+    //EC_POINT_free(h);
     h = NULL;
-    EC_POINT_free(g1);
+    // EC_POINT_free(g1);
     g1 = NULL;
-    EC_POINT_free(h1);
+    // EC_POINT_free(h1);
     h1 = NULL;
     BN_free(x);
     x = NULL;

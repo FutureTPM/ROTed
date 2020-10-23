@@ -89,19 +89,22 @@ struct alice_ot_t
     BN_rand_range(r, params.order);
     cry.set_sk(r);
 
-    if (b == 0)
-      {
-        params.point_mul(g, crs.g, r);
-        params.point_mul(h, crs.h, r);
-      }
-    else
-      {
-        params.point_mul(g, crs.g1, r);
-        params.point_mul(h, crs.h1, r);
-      }
+    EC_POINT *tmp1 = nullptr;
+    EC_POINT *tmp2 = nullptr;
+
+    if (b == 0) {
+        tmp1 = crs.g;
+        tmp2 = crs.h;
+    } else {
+        tmp1 = crs.g1;
+        tmp2 = crs.h1;
+    }
+
+    params.point_mul(g, tmp1, r);
+    params.point_mul(h, tmp2, r);
 
     //hi^r = (gi^xi)^r
-    BN_free(r);
+    // BN_free(r);
   }
 
   void msg2(BIGNUM *m,
@@ -109,16 +112,12 @@ struct alice_ot_t
             EC_POINT *u1, EC_POINT *v1)
   {
     EC_POINT *pm = EC_POINT_new(params.group);
-    if (b == 0)
-      {
+    if (b == 0) {
         cry.decrypt(pm, u, v);
-        cry.decode(m, pm);
-      }
-    else
-      {
+    } else {
         cry.decrypt(pm, u1, v1);
-        cry.decode(m, pm);
-      }
+    }
+    cry.decode(m, pm);
 
     EC_POINT_free(pm);
   }

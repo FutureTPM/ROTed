@@ -2,60 +2,66 @@
 #include <iostream>
 #include "ddhot.hpp"
 #include "ddhcry.hpp"
-#include <random>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/variate_generator.hpp>
+#include "cpucycles.h"
 
 void ddhot_test()
 {
-  const size_t numtests = 1000;
+  const size_t numtests = 10000;
   ec_params_t params(NID_X9_62_prime256v1);
+  crs_t crs(params, 32);
 
   EC_POINT *g, *h, *u, *v, *u1, *v1;
   int b;
   BIGNUM *m, *m1, *m2;
 
-  std::default_random_engine gen;
-  std::uniform_int_distribution<unsigned int> dist_bit(0,1);
+  boost::mt19937 rng;
+  boost::uniform_int<> dist(0,1);
+  boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
+      bit(rng, dist);
 
   g = EC_POINT_new(params.group);
   h = EC_POINT_new(params.group);
   u = EC_POINT_new(params.group);
   v = EC_POINT_new(params.group);
-  u1 = EC_POINT_new(params.group); 
+  u1 = EC_POINT_new(params.group);
   v1 = EC_POINT_new(params.group);
   m = BN_new();
   m1 = BN_new();
   m2 = BN_new();
 
-  for (size_t i = 0; i < numtests; i++)
-    {
-      crs_t crs(params, 32);
+  for (size_t i = 0; i < numtests; i++) {
+      long long start = cpucycles_amd64cpuinfo();
       alice_ot_t alice(crs);
       bob_ot_t bob(crs);
       BN_rand(m, 32, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
       BN_rand(m1, 32, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
 
-      b = dist_bit(gen);
+      b = bit();
 
       alice.msg1(g, h, b);
       bob.msg1(u, v,
-               u1, v1,
-               g, h,
-               m, m1);
+              u1, v1,
+              g, h,
+              m, m1);
       alice.msg2(m2,
-                 u, v,
-                 u1, v1);
+              u, v,
+              u1, v1);
 
-      if (b == 0)
-        {
-          BN_sub(m2, m2, m);
-        }
-      else
-        {
-          BN_sub(m2, m2, m1);
-        }
+      BIGNUM *tmp = nullptr;
+      if (b == 0) {
+          tmp = m;
+      } else {
+          tmp = m1;
+      }
+      BN_sub(m2, m2, tmp);
 
       CU_ASSERT(BN_is_zero(m2));
-    }
+      long long end = cpucycles_amd64cpuinfo();
+      //printf("Clock cycles elapsed: %lld\n", end - start);
+  }
 
   EC_POINT_free(g);
   EC_POINT_free(h);
@@ -109,13 +115,13 @@ int main(int argc, char *argv[])
   if (CUE_SUCCESS != CU_initialize_registry())
     return CU_get_error();
 
-  CU_pSuite suite = CU_add_suite("DDHCRY", NULL, NULL);
-  if (suite == NULL) abort();
+  //CU_pSuite suite = CU_add_suite("DDHCRY", NULL, NULL);
+  //if (suite == NULL) abort();
 
-  if ((NULL == CU_add_test(suite, "ddhcry", ddhcry_test)))
-    {
-      abort();
-    }
+  //if ((NULL == CU_add_test(suite, "ddhcry", ddhcry_test)))
+  //  {
+  //    abort();
+  //  }
 
   CU_pSuite suite1 = CU_add_suite("DDHOT", NULL, NULL);
   if (suite1 == NULL) abort();

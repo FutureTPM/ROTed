@@ -27,7 +27,7 @@ set(CMAKE_CXX_FLAGS_OLD ${CMAKE_CXX_FLAGS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 
 if (X86)
-    check_cxx_source_compiles("#include <immintrin.h>\nint main() { __m512i cenas; return 0;}" NFLLIB_USE_AVX512)
+    check_cxx_source_compiles("#include <immintrin.h>\nint main() { __m512i avx_2p  = _mm512_set1_epi16(16 << 1); __m512i avx_t0  = _mm512_add_epi16(avx_2p, avx_2p); return 0;}" NFLLIB_USE_AVX512)
     check_cxx_source_compiles("#include <immintrin.h>\nint main() { return 0;}" NFLLIB_USE_AVX)
     check_cxx_source_compiles("#include <pmmintrin.h>\nint main() { return 0;}" NFLLIB_USE_SSE)
 elseif (ARM)
@@ -49,6 +49,10 @@ elseif(NFLLIB_USE_NEON)
   add_definitions(-DNTT_NEON)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -ftree-vectorize")
 endif()
+
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+find_package(GMP REQUIRED)
+find_package(MPFR REQUIRED)
 
 include_directories(include include/nfl include/nfl/arch include/nfl/opt include/nfl/opt/arch include/nfl/prng)
 
@@ -82,3 +86,5 @@ install(FILES ${NFLLIB_HDRS_2} DESTINATION include/nfl/arch)
 install(FILES ${NFLLIB_HDRS_3} DESTINATION include/nfl/opt)
 install(FILES ${NFLLIB_HDRS_4} DESTINATION include/nfl/opt/arch)
 install(FILES ${NFLLIB_PRNG_HDRS} DESTINATION include/nfl/prng)
+
+add_subdirectory(tests)

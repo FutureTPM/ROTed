@@ -14,8 +14,10 @@ else()
     endif()
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+
 if (X86)
-    check_cxx_source_compiles("#include <immintrin.h>\nint main() { __m512i cenas; return 0;}" NFLLIB_USE_AVX512)
+    check_cxx_source_compiles("#include <immintrin.h>\nint main() { __m512i avx_2p  = _mm512_set1_epi16(16 << 1); __m512i avx_t0  = _mm512_add_epi16(avx_2p, avx_2p); return 0;}" NFLLIB_USE_AVX512)
     check_cxx_source_compiles("#include <immintrin.h>\nint main() { return 0;}" NFLLIB_USE_AVX)
     check_cxx_source_compiles("#include <pmmintrin.h>\nint main() { return 0;}" NFLLIB_USE_SSE)
 elseif (ARM)

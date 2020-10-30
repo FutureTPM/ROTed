@@ -9,12 +9,17 @@ bool run()
 {
   using poly_t = nfl::poly_from_modulus<T, degree, modulus>;
 
+#ifdef __LP64__
+  poly_t* resa = alloc_aligned<poly_t, 64>(ITERATIONS, nfl::uniform());
+  poly_t* resb = alloc_aligned<poly_t, 64>(ITERATIONS, nfl::uniform());
+#else
   poly_t* resa = alloc_aligned<poly_t, 32>(ITERATIONS, nfl::uniform());
   poly_t* resb = alloc_aligned<poly_t, 32>(ITERATIONS, nfl::uniform());
-  
+#endif
+
   bool ret_value = true;
   // Randomized test
-  // if resb[i] is the null polynomial this test fails but 
+  // if resb[i] is the null polynomial this test fails but
   // then the uniform generator is wrong or we are extremely unlucky
   for (size_t i = 0 ; i < ITERATIONS; i++)
     ret_value &= (resa[i] != (resa[i]+resb[i]));
@@ -36,10 +41,10 @@ bool run_p()
     resa[i] = nfl::uniform();
     resb[i] = nfl::uniform();
   }
-  
+
   bool ret_value = true;
   // Randomized test
-  // if resb[i] is the null polynomial this test fails but 
+  // if resb[i] is the null polynomial this test fails but
   // then the uniform generator is wrong or we are extremely unlucky
   for (size_t i = 0 ; i < ITERATIONS; i++)
     ret_value &= (resa[i] != (resa[i]+resb[i]));

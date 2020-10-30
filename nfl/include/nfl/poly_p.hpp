@@ -11,7 +11,7 @@ template<class T, size_t Degree, size_t NbModuli>
 class poly_p {
   typedef poly<T, Degree, NbModuli> poly_type;
   typedef std::shared_ptr<poly_type> ptr_type;
- 
+
 public:
   using value_type = typename poly_type::value_type;
   using greater_value_type = typename poly_type::greater_value_type;
@@ -64,7 +64,7 @@ public:
    return *this;
  }
 
-  poly_p& operator=(poly_p const& o) 
+  poly_p& operator=(poly_p const& o)
   {
     if (this != &o) {
       _p = o._p;
@@ -72,7 +72,7 @@ public:
     return *this;
   }
 
-  poly_p& operator=(poly_p&& o) 
+  poly_p& operator=(poly_p&& o)
   {
     if (this != &o) {
       _p = std::move(o._p);
@@ -152,7 +152,7 @@ public:
 
   /* serializer (cereal)
   */
-  template<class Archive> void serialize(Archive & archive) { 
+  template<class Archive> void serialize(Archive & archive) {
     archive( poly_obj() );
   }
 
@@ -169,7 +169,11 @@ private:
   template <class... Args>
   static ptr_type make_pointer(Args&& ... args)
   {
-    aligned_allocator<poly_type, 32> alloc; 
+#ifdef __LP64__
+    aligned_allocator<poly_type, 64> alloc;
+#else
+    aligned_allocator<poly_type, 32> alloc;
+#endif
     return std::allocate_shared<poly_type>(alloc, std::forward<Args>(args)...);
   }
 

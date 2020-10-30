@@ -12,19 +12,31 @@ bool run() {
                        std::stringstream::binary);
 
   // define a random polynomial
+#ifdef __LP64__
+  poly_t& p0 = *alloc_aligned<poly_t, 64>(1, nfl::uniform());
+#else
   poly_t& p0 = *alloc_aligned<poly_t, 32>(1, nfl::uniform());
+#endif
 
   // serialize the polynomial
   p0.serialize_manually(ss);
 
   // copy p0 into p1
+#ifdef __LP64__
+  poly_t& p1 = *alloc_aligned<poly_t, 64>(1, p0);
+#else
   poly_t& p1 = *alloc_aligned<poly_t, 32>(1, p0);
+#endif
 
   // free p0
   free_aligned(1, &p0);
 
   // define a new polynomial p2
+#ifdef __LP64__
+  poly_t& p2 = *alloc_aligned<poly_t, 64>(1);
+#else
   poly_t& p2 = *alloc_aligned<poly_t, 32>(1);
+#endif
 
   // deserialize the stream into p2
   p2.deserialize_manually(ss);

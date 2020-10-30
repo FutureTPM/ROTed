@@ -11,11 +11,20 @@ bool test_binary_op(OpValue const& op_value, OpPoly const& op_poly)
 {
   size_t nmoduli = poly_t::nmoduli;
 
+#ifdef __LP64__
+  poly_t* resa = alloc_aligned<poly_t, 64>(ITERATIONS, nfl::uniform());
+  poly_t* resb = alloc_aligned<poly_t, 64>(ITERATIONS, nfl::uniform());
+#else
   poly_t* resa = alloc_aligned<poly_t, 32>(ITERATIONS, nfl::uniform());
   poly_t* resb = alloc_aligned<poly_t, 32>(ITERATIONS, nfl::uniform());
- 
+#endif
+
   bool ret_value = true;
+#ifdef __LP64__
+  poly_t& tmp = *alloc_aligned<poly_t, 64>(1);
+#else
   poly_t& tmp = *alloc_aligned<poly_t, 32>(1);
+#endif
   for (size_t i = 0 ; i < ITERATIONS; i++)
   {
     for (size_t cm = 0; cm < nmoduli; cm++)

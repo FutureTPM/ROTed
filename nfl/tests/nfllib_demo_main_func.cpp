@@ -30,19 +30,36 @@ int run()
   std::cout << "======================================================================" << std::endl;
 
   using poly_t = nfl::poly_from_modulus<T, degree, modulus>;
+#ifdef __LP64__
+  static_assert(sizeof(poly_t) % 64 == 0, "sizeof(poly_t) must be 64-bytes aligned");
+#else
   static_assert(sizeof(poly_t) % 32 == 0, "sizeof(poly_t) must be 32-bytes aligned");
+#endif
 
   auto start = std::chrono::steady_clock::now();
   auto end = std::chrono::steady_clock::now();
 
-  // Polynomial arrays to do the tests 
+  // Polynomial arrays to do the tests
   start = std::chrono::steady_clock::now();
-/* AG: on my system, this gives pointers non aligned on 32-bytes!
+/* AG: on my system, this gives pointers non aligned on 64-bytes!
   poly_t *resa = new poly_t[REPETITIONS],
          *resb = new poly_t[REPETITIONS],
          *resc = new poly_t[REPETITIONS],
          *resd = new poly_t[REPETITIONS];
 */
+#ifdef __LP64__
+  poly_t *resa = alloc_aligned<poly_t, 64>(REPETITIONS),
+         *resb = alloc_aligned<poly_t, 64>(REPETITIONS),
+         *resc = alloc_aligned<poly_t, 64>(REPETITIONS),
+         *resd = alloc_aligned<poly_t, 64>(REPETITIONS);
+  if ((((uintptr_t)resa % 64) != 0) ||
+	  (((uintptr_t)resb % 64) != 0) ||
+	  (((uintptr_t)resc % 64) != 0) ||
+	  (((uintptr_t)resd % 64) != 0)) {
+	  printf("fatal error: pointer unaligned!\n");
+	  exit(1);
+  }
+#else
   poly_t *resa = alloc_aligned<poly_t, 32>(REPETITIONS),
          *resb = alloc_aligned<poly_t, 32>(REPETITIONS),
          *resc = alloc_aligned<poly_t, 32>(REPETITIONS),
@@ -54,6 +71,7 @@ int run()
 	  printf("fatal error: pointer unaligned!\n");
 	  exit(1);
   }
+#endif
   std::fill(resa, resa + REPETITIONS, 0);
   std::fill(resb, resb + REPETITIONS, 0);
   std::fill(resc, resc + REPETITIONS, 0);

@@ -14,7 +14,11 @@ bool run() {
   std::srand(std::time(0));
 
   // define a random polynomial
+#ifdef __LP64__
+  poly_t& p0 = *alloc_aligned<poly_t, 64>(1, nfl::uniform());
+#else
   poly_t& p0 = *alloc_aligned<poly_t, 32>(1, nfl::uniform());
+#endif
 
   // get all the coefficients in an array
   std::vector<T> big_array(poly_t::degree * poly_t::nmoduli);
@@ -25,8 +29,13 @@ bool run() {
   }
 
   // define a polynomial from the array
+#ifdef __LP64__
+  poly_t& p1 =
+      *alloc_aligned<poly_t, 64>(1, big_array.begin(), big_array.end());
+#else
   poly_t& p1 =
       *alloc_aligned<poly_t, 32>(1, big_array.begin(), big_array.end());
+#endif
 
   // verify that the first and second polynomials are equal
   ret_value &= (p0 == p1);
@@ -35,8 +44,13 @@ bool run() {
   std::generate(big_array.begin(), big_array.end(), std::rand);
 
   // define a polynomial from the array
+#ifdef __LP64__
+  poly_t& p2 =
+      *alloc_aligned<poly_t, 64>(1, big_array.begin(), big_array.end());
+#else
   poly_t& p2 =
       *alloc_aligned<poly_t, 32>(1, big_array.begin(), big_array.end());
+#endif
 
   // verify that the coefficients of the polynomial have been set correctly
   for (size_t cm = 0; cm < poly_t::nmoduli; cm++) {
@@ -49,8 +63,13 @@ bool run() {
 
   // define a polynomial from the array without reducing the coefficients
   // reduce_coeffs = false
+#ifdef __LP64__
+  poly_t& p3 =
+      *alloc_aligned<poly_t, 64>(1, big_array.begin(), big_array.end(), false);
+#else
   poly_t& p3 =
       *alloc_aligned<poly_t, 32>(1, big_array.begin(), big_array.end(), false);
+#endif
 
   // verify that the coefficients of the polynomial have been set correctly
   for (size_t cm = 0; cm < poly_t::nmoduli; cm++) {
@@ -64,8 +83,13 @@ bool run() {
   std::generate(small_array.begin(), small_array.end(), std::rand);
 
   // define a polynomial from the array
+#ifdef __LP64__
+  poly_t& p4 =
+      *alloc_aligned<poly_t, 64>(1, small_array.begin(), small_array.end());
+#else
   poly_t& p4 =
       *alloc_aligned<poly_t, 32>(1, small_array.begin(), small_array.end());
+#endif
 
   // verify that the coefficients of the polynomial have been set correctly
   for (size_t cm = 0; cm < poly_t::nmoduli; cm++) {
@@ -76,8 +100,13 @@ bool run() {
 
   // define a polynomial from the array without reducing the coefficients
   // reduce_coeffs = false
+#ifdef __LP64__
+  poly_t& p5 = *alloc_aligned<poly_t, 64>(1, small_array.begin(),
+                                          small_array.end(), false);
+#else
   poly_t& p5 = *alloc_aligned<poly_t, 32>(1, small_array.begin(),
                                           small_array.end(), false);
+#endif
 
   // verify that the coefficients of the polynomial have been set correctly
   for (size_t cm = 0; cm < poly_t::nmoduli; cm++) {
@@ -87,7 +116,11 @@ bool run() {
   }
 
   // define the zero polynomial
+#ifdef __LP64__
+  poly_t& p6 = *alloc_aligned<poly_t, 64>(1, 0);
+#else
   poly_t& p6 = *alloc_aligned<poly_t, 32>(1, 0);
+#endif
 
   // verify that the coefficients of the polynomial have been set correctly
   for (size_t cm = 0; cm < poly_t::nmoduli; cm++) {

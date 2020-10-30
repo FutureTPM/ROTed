@@ -7,7 +7,11 @@ template<size_t degree, size_t modulus, class T>
 bool run()
 {
   using poly_t = nfl::poly_from_modulus<T, degree, modulus>;
+#ifdef __LP64__
+  poly_t& p = *alloc_aligned<poly_t, 64>(1);
+#else
   poly_t& p = *alloc_aligned<poly_t, 32>(1);
+#endif
   p = 1;
   std::ostringstream oss;
   oss << p << std::endl;

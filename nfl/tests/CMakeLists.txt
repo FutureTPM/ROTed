@@ -16,6 +16,8 @@ MESSAGE(STATUS "Found CEREAL: ${CEREAL_INCLUDE_DIR}")
 include_directories(${CEREAL_INCLUDE_DIR})
 endif()
 
+add_compile_options(-O0 -g3)
+
 foreach(CONFIG ${CONFIGS})
     string(REGEX REPLACE ", " "_" CONFIG_ID ${CONFIG})
 

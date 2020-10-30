@@ -147,7 +147,11 @@ int run()
   using poly_proxy_t = nfl::tests::poly_tests_proxy<poly_t>;
 
   auto start = std::chrono::steady_clock::now();
+#ifdef __LP64__
+  poly_t *resa = alloc_aligned<poly_t, 64>(REPETITIONS);
+#else
   poly_t *resa = alloc_aligned<poly_t, 32>(REPETITIONS);
+#endif
   std::fill(resa, resa + REPETITIONS, 0);
 
   std::fill(resa, resa + REPETITIONS, nfl::uniform());

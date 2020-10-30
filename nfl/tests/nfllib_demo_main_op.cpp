@@ -27,15 +27,27 @@ template <class P>
 __attribute__((noinline)) static void encrypt(P& resa, P& resb, P const & pka, P const & pkb, P const & pkaprime, P const & pkbprime, nfl::FastGaussianNoise<uint8_t, typename P::value_type, 2> *g_prng)
 {
   // u
+#ifdef __LP64__
+  P &tmpu = *alloc_aligned<P, 64>(1, nfl::gaussian<uint8_t, typename P::value_type, 2>(g_prng));
+#else
   P &tmpu = *alloc_aligned<P, 32>(1, nfl::gaussian<uint8_t, typename P::value_type, 2>(g_prng));
+#endif
   tmpu.ntt_pow_phi();
-  
+
   // 2*e_1
+#ifdef __LP64__
+  P &tmpe1 = *alloc_aligned<P, 64>(1, nfl::gaussian<uint8_t, typename P::value_type, 2>(g_prng, 2));
+#else
   P &tmpe1 = *alloc_aligned<P, 32>(1, nfl::gaussian<uint8_t, typename P::value_type, 2>(g_prng, 2));
+#endif
   tmpe1.ntt_pow_phi();
 
   // 2*e_2
+#ifdef __LP64__
+  P &tmpe2 = *alloc_aligned<P, 64>(1, nfl::gaussian<uint8_t, typename P::value_type, 2>(g_prng, 2));
+#else
   P &tmpe2 = *alloc_aligned<P, 32>(1, nfl::gaussian<uint8_t, typename P::value_type, 2>(g_prng, 2));
+#endif
   tmpe2.ntt_pow_phi();
 
   // resa = pka * u + 2*e_2
@@ -49,7 +61,7 @@ template <class P>
 __attribute__((noinline)) static void decrypt(P& tmp, P const & resa, P const& resb, P const& s, P const& sprime, typename P::value_type const modulus)
 {
   tmp = resb - resa * s;
-  
+
   tmp.invntt_pow_invphi();
   for(auto & v : tmp)
   {
@@ -73,7 +85,11 @@ bool test_mulmod_shoup(P* resa, P* resb, P* resc, P* resd)
     resc[i] = nfl::shoup(resa[i] * resb[i], resd[i]);
   }
   auto end = std::chrono::steady_clock::now();
+#ifdef __LP64__
+  poly_t& ptmp = *alloc_aligned<poly_t, 64>(1);
+#else
   poly_t& ptmp = *alloc_aligned<poly_t, 32>(1);
+#endif
   for (unsigned i = 0; i < REPETITIONS ; i++)
   {
     ptmp = nfl::ops::make_op<nfl::ops::mulmod_shoup<typename P::value_type, nfl::simd::serial>>(resa[i], resb[i], resd[i]);
@@ -93,13 +109,30 @@ int run()
   std::cout << "======================================================================" << std::endl;
 
   using poly_t = nfl::poly_from_modulus<T, degree, modulus>;
+#ifdef __LP64__
+  static_assert(sizeof(poly_t) % 64 == 0, "sizeof(poly_t) must be 64-bytes aligned");
+#else
   static_assert(sizeof(poly_t) % 32 == 0, "sizeof(poly_t) must be 32-bytes aligned");
+#endif
 
   auto start = std::chrono::steady_clock::now();
   auto end = std::chrono::steady_clock::now();
 
-  // Polynomial arrays to do the tests 
+  // Polynomial arrays to do the tests
   start = std::chrono::steady_clock::now();
+#ifdef __LP64__
+  poly_t *resa = alloc_aligned<poly_t, 64>(REPETITIONS),
+         *resb = alloc_aligned<poly_t, 64>(REPETITIONS),
+         *resc = alloc_aligned<poly_t, 64>(REPETITIONS),
+         *resd = alloc_aligned<poly_t, 64>(REPETITIONS);
+  if ((((uintptr_t)resa % 64) != 0) ||
+	  (((uintptr_t)resb % 64) != 0) ||
+	  (((uintptr_t)resc % 64) != 0) ||
+	  (((uintptr_t)resd % 64) != 0)) {
+	  printf("fatal error: pointer unaligned!\n");
+	  exit(1);
+  }
+#else
   poly_t *resa = alloc_aligned<poly_t, 32>(REPETITIONS),
          *resb = alloc_aligned<poly_t, 32>(REPETITIONS),
          *resc = alloc_aligned<poly_t, 32>(REPETITIONS),
@@ -111,6 +144,7 @@ int run()
 	  printf("fatal error: pointer unaligned!\n");
 	  exit(1);
   }
+#endif
   std::fill(resa, resa + REPETITIONS, 0);
   std::fill(resb, resb + REPETITIONS, 0);
   std::fill(resc, resc + REPETITIONS, 0);
@@ -263,18 +297,31 @@ int run()
   unsigned int nbModuli = poly_t::nmoduli;
 
   // Some needed polynomials
+#ifdef __LP64__
+  poly_t &tmp = *alloc_aligned<poly_t, 64>(1),
+	  &pka = *alloc_aligned<poly_t, 64>(1),
+	  &pkaprime = *alloc_aligned<poly_t, 64>(1),
+	  &pkb = *alloc_aligned<poly_t, 64>(1),
+	  &pkbprime = *alloc_aligned<poly_t, 64>(1);
+#else
   poly_t &tmp = *alloc_aligned<poly_t, 32>(1),
 	  &pka = *alloc_aligned<poly_t, 32>(1),
 	  &pkaprime = *alloc_aligned<poly_t, 32>(1),
 	  &pkb = *alloc_aligned<poly_t, 32>(1),
 	  &pkbprime = *alloc_aligned<poly_t, 32>(1);
-  
+#endif
+
   // Gaussian sampler
   nfl::FastGaussianNoise<uint8_t, T, 2> g_prng(SIGMA, 128, 1<<10);
-  
+
   // This step generates a secret key
+#ifdef __LP64__
+  poly_t &s = *alloc_aligned<poly_t, 64>(1, nfl::gaussian<uint8_t, T, 2>(&g_prng));
+  poly_t &sprime = *alloc_aligned<poly_t, 64>(1);
+#else
   poly_t &s = *alloc_aligned<poly_t, 32>(1, nfl::gaussian<uint8_t, T, 2>(&g_prng));
   poly_t &sprime = *alloc_aligned<poly_t, 32>(1);
+#endif
   s.ntt_pow_phi();
   sprime = nfl::compute_shoup(s);
 
@@ -287,7 +334,7 @@ int run()
   pkb = pkb + nfl::shoup(pka * s, sprime);
   pkaprime = nfl::compute_shoup(pka);
   pkbprime = nfl::compute_shoup(pkb);
-  
+
 
   start = std::chrono::steady_clock::now();
   // Generate REPETITIONS encryption of 0 formed of polynomials (resa[i],resb[i])
@@ -310,7 +357,11 @@ int run()
   end = std::chrono::steady_clock::now();
   std::cout << "Time per LWE-like symmetric decryption: " << get_time_us(start, end, LOOP*REPETITIONS) << " us" << std::endl;
 
+#ifdef __LP64__
+  poly_t &finalres = *alloc_aligned<poly_t, 64>(1);
+#else
   poly_t &finalres = *alloc_aligned<poly_t, 32>(1);
+#endif
   // Now we decrypt the ciphertexts and add the results
   // As we have encryptions of 0 the sum should be 0
   for (unsigned i = 0; i < REPETITIONS; i++)

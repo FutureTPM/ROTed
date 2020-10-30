@@ -53,7 +53,11 @@ static inline void loop_body_runner(Body& body, T* ret, Args&& ... args)
 template <class SIMD, class Integer, class Vec, class F>
 void assert_vec_values(Vec const v, F const& f)
 {
+#ifdef __LP64__
+  alignas(64) Integer v_[SIMD::template elt_count<Integer>::value];
+#else
   alignas(32) Integer v_[SIMD::template elt_count<Integer>::value];
+#endif
   SIMD::store(&v_[0], v);
   for (Integer const i: v_) {
     assert(f(i));
@@ -64,8 +68,13 @@ template <class SIMD, class Integer, class Vec>
 void assert_addmod_input(Vec const x, Vec const y, Integer const p)
 {
   static constexpr size_t n = SIMD::template elt_count<Integer>::value;
+#ifdef __LP64__
+  alignas(64) Integer x_[n];
+  alignas(64) Integer y_[n];
+#else
   alignas(32) Integer x_[n];
   alignas(32) Integer y_[n];
+#endif
   SIMD::store(&x_[0], x);
   SIMD::store(&y_[0], y);
   for (size_t i = 0; i < n; i++) {

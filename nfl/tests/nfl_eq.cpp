@@ -8,8 +8,12 @@ bool run()
 {
   using poly_t = nfl::poly_from_modulus<T, degree, modulus>;
 
+#ifdef __LP64__
+  poly_t* resa = alloc_aligned<poly_t, 64>(ITERATIONS, nfl::uniform());
+#else
   poly_t* resa = alloc_aligned<poly_t, 32>(ITERATIONS, nfl::uniform());
-  
+#endif
+
   bool ret_value = true;
   // Randomized tests
   for (size_t i = 0 ; i < ITERATIONS; i++)
@@ -29,7 +33,7 @@ bool run_p()
   for (size_t i = 0 ; i < ITERATIONS; i++) {
     resa[i] = nfl::uniform();
   }
-  
+
   bool ret_value = true;
   // Randomized tests
   for (size_t i = 0 ; i < ITERATIONS; i++)

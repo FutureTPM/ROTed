@@ -85,7 +85,11 @@ class poly {
   template <class P> friend class tests::poly_tests_proxy;
 
   static constexpr size_t N = Degree * NbModuli;
+#ifdef __LP64__
+  T _data[N] __attribute__((aligned(64)));
+#else
   T _data[N] __attribute__((aligned(32)));
+#endif
 
 public:
   using value_type = typename params<T>::value_type;
@@ -225,6 +229,18 @@ public:
     // NOTE : omega and derived values are ordered following David Harvey's
     // algorithm w**0 w**1 ... w**(degree/2) w**0 w**2 ...
     // w**(degree/2) w**0 w**4 ... w**(degree/2) etc. (degree values)
+#ifdef __LP64__
+    value_type
+      phis[nmoduli][degree] __attribute__((aligned(64))),
+      shoupphis[nmoduli][degree]  __attribute__((aligned(64))),
+      invpoly_times_invphis[nmoduli][degree]  __attribute__((aligned(64))),
+      shoupinvpoly_times_invphis[nmoduli][degree]  __attribute__((aligned(64))),
+      omegas[nmoduli][degree * 2]  __attribute__((aligned(64))),
+      *shoupomegas[nmoduli]  __attribute__((aligned(64))),
+      invomegas[nmoduli][2 * degree]  __attribute__((aligned(64))),
+      *shoupinvomegas[nmoduli]  __attribute__((aligned(64))),
+      invpolyDegree[nmoduli]  __attribute__((aligned(64)));
+#else
     value_type
       phis[nmoduli][degree] __attribute__((aligned(32))),
       shoupphis[nmoduli][degree]  __attribute__((aligned(32))),
@@ -235,6 +251,7 @@ public:
       invomegas[nmoduli][2 * degree]  __attribute__((aligned(32))),
       *shoupinvomegas[nmoduli]  __attribute__((aligned(32))),
       invpolyDegree[nmoduli]  __attribute__((aligned(32)));
+#endif
 
     /* Initializing function
      */
@@ -242,7 +259,11 @@ public:
     void initialize();
     static void prep_wtab(value_type* wtab, value_type* winvtab, value_type w, size_t cm);
 
+#ifdef __LP64__
+  } __attribute__((aligned(64)));
+#else
   } __attribute__((aligned(32)));
+#endif
 
   static core base;
 
@@ -306,7 +327,11 @@ public:
   inline static constexpr mpz_t& modulus_shoup() { return gmp.modulus_shoup; };
   inline static constexpr std::array<mpz_t, nmoduli> lifting_integers() { return gmp.lifting_integers; };
 
+#ifdef __LP64__
+}  __attribute__((aligned(64)));
+#else
 }  __attribute__((aligned(32)));
+#endif
 
 
 /* High level operations on polynomials. They are just wrappers over the operator overloads

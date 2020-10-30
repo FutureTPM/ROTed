@@ -16,13 +16,21 @@ bool run() {
   prng.seed(0);
 
   // define a random polynomial
+#ifdef __LP64__
+  poly_t& p0 = *alloc_aligned<poly_t, 64>(1, nfl::uniform());
+#else
   poly_t& p0 = *alloc_aligned<poly_t, 32>(1, nfl::uniform());
+#endif
 
   // get the corresponding array of mpz_t
   std::array<mpz_t, degree> coefficients = p0.poly2mpz();
 
   // construct a polynomial from mpz_t coefficients
+#ifdef __LP64__
+  poly_t& p1 = *alloc_aligned<poly_t, 64>(1, 0);
+#else
   poly_t& p1 = *alloc_aligned<poly_t, 32>(1, 0);
+#endif
   p1.mpz2poly(coefficients);
 
   // verify that the first and second polynomials are equal
@@ -35,7 +43,11 @@ bool run() {
   }
 
   // construct a polynomial from mpz_class coefficients
+#ifdef __LP64__
+  poly_t& p2 = *alloc_aligned<poly_t, 64>(1, 0);
+#else
   poly_t& p2 = *alloc_aligned<poly_t, 32>(1, 0);
+#endif
   p2.set_mpz(coefficients_mpz_class.begin(), coefficients_mpz_class.end());
 
   // verify that the first and third polynomials are equal
@@ -50,7 +62,11 @@ bool run() {
   }
 
   // construct a polynomial from the big_array vector
+#ifdef __LP64__
+  poly_t& p3 = *alloc_aligned<poly_t, 64>(1, 0);
+#else
   poly_t& p3 = *alloc_aligned<poly_t, 32>(1, 0);
+#endif
   p3.set_mpz(big_array.begin(), big_array.end());
 
   // verify that the coefficients of the polynomial have been set correctly

@@ -31,8 +31,6 @@ template<> struct common_mode<simd::avx512, simd::serial> { using type = simd::s
 template<> struct common_mode<simd::avx512, simd::avx2> { using type = simd::avx2;};
 template<> struct common_mode<simd::avx2, simd::avx512> { using type = simd::avx2;};
 template<> struct common_mode<simd::serial, simd::avx512> { using type = simd::serial;};
-template<> struct common_mode<simd::avx512, simd::sse> { using type = simd::sse;};
-template<> struct common_mode<simd::sse, simd::avx512> { using type = simd::sse;};
 
 namespace ops {
 
@@ -215,9 +213,9 @@ struct ntt_loop_body<simd::avx512, poly, uint16_t> {
 
   ntt_loop_body(value_type const p)
   {
-    _avx_2p = _mm512_set1_epi16(p << 1);
-    _avx_p = _mm512_set1_epi16(p);
-    _avx_80 = _mm512_set1_epi16(0x8000);
+    _avx_2p  = _mm512_set1_epi16(p << 1);
+    _avx_p   = _mm512_set1_epi16(p);
+    _avx_80  = _mm512_set1_epi16(0x8000);
     _avx_2pc = _mm512_set1_epi16((2*p) - 0x8000 - 1);
   }
 
@@ -225,21 +223,23 @@ struct ntt_loop_body<simd::avx512, poly, uint16_t> {
   {
     __m512i avx_u0, avx_u1, avx_winvtab, avx_wtab, avx_t0, avx_t1, avx_q, avx_t2;
     __mmask32 avx_cmp;
-    avx_u0 = _mm512_load_si512((__m512i const*) x0);
-    avx_u1 = _mm512_load_si512((__m512i const*) x1);
-    avx_winvtab = _mm512_load_si512((__m512i const*) winvtab);
-    avx_wtab = _mm512_load_si512((__m512i const*) wtab);
+    __m512i zeros = _mm512_set1_epi16(0);
+    avx_u0        = _mm512_load_si512((__m512i const*) x0);
+    avx_u1        = _mm512_load_si512((__m512i const*) x1);
+    avx_winvtab   = _mm512_load_si512((__m512i const*) winvtab);
+    avx_wtab      = _mm512_load_si512((__m512i const*) wtab);
 
     avx_t1 = _mm512_add_epi16(_avx_2p, _mm512_sub_epi16(avx_u0, avx_u1));
 
-    avx_q = _mm512_mulhi_epu16(avx_t1, avx_winvtab);
-    avx_t2 = _mm512_sub_epi16(_mm512_mullo_epi16(avx_t1, avx_wtab),
-        _mm512_mullo_epi16(avx_q, _avx_p));
+    avx_q  = _mm512_mulhi_epu16(avx_t1, avx_winvtab);
+    avx_t2 = _mm512_sub_epi16(
+                _mm512_mullo_epi16(avx_t1, avx_wtab),
+                _mm512_mullo_epi16(avx_q, _avx_p)
+             );
 
-    avx_t0 = _mm512_add_epi16(avx_u0, avx_u1);
-    __m512i zeros = _mm512_set1_epi16(0);
+    avx_t0  = _mm512_add_epi16(avx_u0, avx_u1);
     avx_cmp = _mm512_cmpgt_epi16_mask(_mm512_sub_epi16(avx_t0, _avx_80), _avx_2pc);
-    avx_t0 = _mm512_sub_epi16(avx_t0, _mm512_mask_blend_epi16(avx_cmp, zeros, _avx_2p));
+    avx_t0  = _mm512_sub_epi16(avx_t0, _mm512_mask_blend_epi16(avx_cmp, zeros, _avx_2p));
 
     _mm512_store_si512((__m512i*) x0, avx_t0);
     _mm512_store_si512((__m512i*) x1, avx_t2);
@@ -280,13 +280,13 @@ struct ntt_loop_avx512_unrolled {
         for (size_t i = 0; i < Navx512; i += elt_count) {
           body_avx512(&x[N * r + i], &x[N * r + i + N/2], &winvtab[i], &wtab[i]);
         }
-        if (Navx512 != (N/2)) {
+        if (Navx512 != (N/2) && (N/2) == elt_count/2) {
           const size_t i = Navx512;
           body_avx2(&x[N * r + i], &x[N * r + i + N/2], &winvtab[i], &wtab[i]);
-
-          // FIXME
-          //const size_t i = Navx512;
-          //body_sse(&x[N * r + i], &x[N * r + i + N/2], &winvtab[i], &wtab[i]);
+        }
+        if (Navx512 != (N/2) && (N/2) == elt_count/4) {
+          const size_t i = Navx512;
+          body_sse(&x[N * r + i], &x[N * r + i + N/2], &winvtab[i], &wtab[i]);
         }
       }
       wtab += N / 2;
@@ -338,20 +338,25 @@ struct mulmod_shoup<uint16_t, simd::avx512>
     const __m512i avx_x_32 = _mm512_cvtepu16_epi32(avx_x);
     const __m512i avx_y_32 = _mm512_cvtepu16_epi32(avx_y);
     const __m512i avx_q_32 = _mm512_cvtepu16_epi32(avx_q);
+    const __m512i zeros    = _mm512_set1_epi32(0);
 
     const __m512i avx_res = _mm512_sub_epi32(
         _mm512_mullo_epi32(avx_x_32, avx_y_32),
         _mm512_mullo_epi32(avx_q_32, avx_p_32)
         );
 
-    __m512i zeros = _mm512_set1_epi32(0);
-    const __mmask16 avx_cmp = _mm512_cmpgt_epi32_mask(_mm512_sub_epi32(avx_res, avx_80), avx_pc_32);
-    const __m512i tmp1 = _mm512_sub_epi32(avx_res, _mm512_mask_blend_epi32(avx_cmp, zeros, avx_p_32));
-    const __m256i tmp1_high = _mm512_extractf32x8_ps(tmp1, 1);
-    const __m256i tmp1_low = _mm512_extractf32x8_ps(tmp1, 0);
-    const __m512i tpm2_tmp = _mm512_inserti64x4(zeros, tmp1_high, 0);
-    const __m512i tpm2 = _mm512_inserti64x4(tpm2_tmp, tmp1_low, 1);
-    const __m256i ret = _mm256_packus_epi32(_mm512_castsi512_si256(tmp1), _mm512_castsi512_si256(tmp2));
+    __mmask16 avx_cmp = _mm512_cmpgt_epi32_mask(_mm512_sub_epi32(avx_res, avx_80), avx_pc_32);
+    __m512i tmp1      = _mm512_sub_epi32(avx_res, _mm512_mask_blend_epi32(avx_cmp, zeros, avx_p_32));
+    __m256i tmp1_high = _mm512_extracti32x8_epi32(tmp1, 1);
+    const __m256i tmp1_high_swapped = _mm256_permute2x128_si256(tmp1_high, tmp1_high, 1);
+    __m256i tmp1_low  = _mm512_extracti32x8_epi32(tmp1, 0);
+    const __m256i tmp1_low_swapped = _mm256_permute2x128_si256(tmp1_low, tmp1_low, 1);
+    __m512i tmp2_tmp  = _mm512_inserti32x8(zeros, tmp1_low_swapped, 1);
+    __m512i tmp2      = _mm512_inserti32x8(tmp2_tmp, tmp1_high_swapped, 0);
+    const __m256i ret_tmp = _mm256_packus_epi32(_mm512_castsi512_si256(tmp1), _mm512_castsi512_si256(tmp2));
+    // Reorder ret ABCD => ACDB (64 bit words)
+    const __m256i ret = _mm256_permute4x64_epi64(ret_tmp, 0b01111000);
+
 
     return ret;
   }
@@ -414,14 +419,18 @@ struct muladd_shoup<uint16_t, simd::avx512>
       )
     );
 
-    __m512i zeros = _mm512_set1_epi32(0);
-    const __mmask16 avx_cmp = _mm512_cmpgt_epi32_mask(_mm512_sub_epi32(avx_res, avx_80), avx_pc_32);
-    const __m512i tmp1 = _mm512_sub_epi32(avx_res, _mm512_mask_blend_epi32(avx_cmp, zeros, avx_p_32));
-    const __m256i tmp1_high = _mm512_extractf32x8_ps(tmp1, 1);
-    const __m256i tmp1_low = _mm512_extractf32x8_ps(tmp1, 0);
-    const __m512i tpm2_tmp = _mm512_inserti64x4(zeros, tmp1_high, 0);
-    const __m512i tpm2 = _mm512_inserti64x4(tpm2_tmp, tmp1_low, 1);
-    const __m256i ret = _mm256_packus_epi32(_mm512_castsi512_si256(tmp1), _mm512_castsi512_si256(tmp2));
+    __m512i zeros     = _mm512_set1_epi32(0);
+    __mmask16 avx_cmp = _mm512_cmpgt_epi32_mask(_mm512_sub_epi32(avx_res, avx_80), avx_pc_32);
+    __m512i tmp1      = _mm512_sub_epi32(avx_res, _mm512_mask_blend_epi32(avx_cmp, zeros, avx_p_32));
+    __m256i tmp1_high = _mm512_extracti32x8_epi32(tmp1, 1);
+    const __m256i tmp1_high_swapped = _mm256_permute2x128_si256(tmp1_high, tmp1_high, 1);
+    __m256i tmp1_low  = _mm512_extracti32x8_epi32(tmp1, 0);
+    const __m256i tmp1_low_swapped = _mm256_permute2x128_si256(tmp1_low, tmp1_low, 1);
+    __m512i tmp2_tmp  = _mm512_inserti32x8(zeros, tmp1_low_swapped, 1);
+    __m512i tmp2      = _mm512_inserti32x8(tmp2_tmp, tmp1_high_swapped, 0);
+    const __m256i ret_tmp = _mm256_packus_epi32(_mm512_castsi512_si256(tmp1), _mm512_castsi512_si256(tmp2));
+    // Reorder ret ABCD => ACDB (64 bit words)
+    const __m256i ret = _mm256_permute4x64_epi64(ret_tmp, 0b01111000);
     return ret;
   }
 

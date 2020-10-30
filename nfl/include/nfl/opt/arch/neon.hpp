@@ -69,7 +69,7 @@ namespace ops {
 static inline uint32x4_t shuffle_epi32(uint32x4_t const v, uint8_t const imm)
 {
     uint32x4_t ret;
-    ret = vmovq_n_u32(vgetq_lane_u32(v, (imm) &0x3));
+    ret = vmovq_n_u32(vgetq_lane_u32(v, (imm) & 0x3));
     ret = vsetq_lane_u32(vgetq_lane_u32(v, ((imm) >> 2) & 0x3), ret, 1);
     ret = vsetq_lane_u32(vgetq_lane_u32(v, ((imm) >> 4) & 0x3), ret, 2);
     ret = vsetq_lane_u32(vgetq_lane_u32(v, ((imm) >> 6) & 0x3), ret, 3);
@@ -301,7 +301,7 @@ struct ntt_loop_body<simd::neon, poly, uint32_t>
             vmulq_s32(neon_q, _neon_p)
         );
 
-    neon_t0  = vaddq_s32(neon_u0, (int32x4_t)neon_u1);
+    neon_t0  = vaddq_s32(neon_u0, neon_u1);
     neon_cmp = vcgtq_s32(vsubq_s32(neon_t0, _neon_80), _neon_2pc);
     neon_t0  = vsubq_s32(neon_t0, vandq_s32(neon_cmp, _neon_2p));
 

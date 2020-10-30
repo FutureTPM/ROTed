@@ -207,29 +207,31 @@ struct ntt_loop_body<simd::avx2, poly, uint16_t> {
 
   ntt_loop_body(value_type const p)
   {
-    _avx_2p = _mm256_set1_epi16(p << 1);
-    _avx_p = _mm256_set1_epi16(p);
-    _avx_80 = _mm256_set1_epi16(0x8000);
+    _avx_2p  = _mm256_set1_epi16(p << 1);
+    _avx_p   = _mm256_set1_epi16(p);
+    _avx_80  = _mm256_set1_epi16(0x8000);
     _avx_2pc = _mm256_set1_epi16((2*p) - 0x8000 - 1);
   }
 
   inline void operator()(value_type* x0, value_type* x1, value_type const* winvtab, value_type const* wtab) const
   {
     __m256i avx_u0, avx_u1, avx_winvtab, avx_wtab, avx_t0, avx_t1, avx_q, avx_t2, avx_cmp;
-    avx_u0 = _mm256_load_si256((__m256i const*) x0);
-    avx_u1 = _mm256_load_si256((__m256i const*) x1);
+    avx_u0      = _mm256_load_si256((__m256i const*) x0);
+    avx_u1      = _mm256_load_si256((__m256i const*) x1);
     avx_winvtab = _mm256_load_si256((__m256i const*) winvtab);
-    avx_wtab = _mm256_load_si256((__m256i const*) wtab);
+    avx_wtab    = _mm256_load_si256((__m256i const*) wtab);
 
     avx_t1 = _mm256_add_epi16(_avx_2p, _mm256_sub_epi16(avx_u0, avx_u1));
 
-    avx_q = _mm256_mulhi_epu16(avx_t1, avx_winvtab);
-    avx_t2 = _mm256_sub_epi16(_mm256_mullo_epi16(avx_t1, avx_wtab),
-        _mm256_mullo_epi16(avx_q, _avx_p));
+    avx_q  = _mm256_mulhi_epu16(avx_t1, avx_winvtab);
+    avx_t2 = _mm256_sub_epi16(
+                _mm256_mullo_epi16(avx_t1, avx_wtab),
+                _mm256_mullo_epi16(avx_q, _avx_p)
+             );
 
-    avx_t0 = _mm256_add_epi16(avx_u0, avx_u1);
+    avx_t0  = _mm256_add_epi16(avx_u0, avx_u1);
     avx_cmp = _mm256_cmpgt_epi16(_mm256_sub_epi16(avx_t0, _avx_80), _avx_2pc);
-    avx_t0 = _mm256_sub_epi16(avx_t0, _mm256_and_si256(avx_cmp, _avx_2p));
+    avx_t0  = _mm256_sub_epi16(avx_t0, _mm256_and_si256(avx_cmp, _avx_2p));
 
     _mm256_store_si256((__m256i*) x0, avx_t0);
     _mm256_store_si256((__m256i*) x1, avx_t2);
@@ -329,16 +331,16 @@ struct mulmod_shoup<uint16_t, simd::avx2>
         );
 
     const __m256i avx_cmp = _mm256_cmpgt_epi32(_mm256_sub_epi32(avx_res, avx_80), avx_pc_32);
-    const __m256i tmp1 = _mm256_sub_epi32(avx_res, _mm256_and_si256(avx_cmp, avx_p_32));
-    const __m256i tmp2 = _mm256_permute2x128_si256(tmp1, tmp1, 1);
-    const __m128i ret = _mm_packus_epi32(_mm256_castsi256_si128(tmp1), _mm256_castsi256_si128(tmp2));
+    const __m256i tmp1    = _mm256_sub_epi32(avx_res, _mm256_and_si256(avx_cmp, avx_p_32));
+    const __m256i tmp2    = _mm256_permute2x128_si256(tmp1, tmp1, 1);
+    const __m128i ret     = _mm_packus_epi32(_mm256_castsi256_si128(tmp1), _mm256_castsi256_si128(tmp2));
     return ret;
   }
 
 #if __GNUC__ == 4 && __GNUC_MINOR__ == 8
   // AG: there is a weird bug with GCC 4.8 that seems to generate incorrect code here.
   // adding a noinline attribute fixes the bug, but we need to get to the bottom of this...
-  // This works fine with GCC 4.9 and clang 3.5! 
+  // This works fine with GCC 4.9 and clang 3.5!
   __attribute__((noinline))
 #endif
   __m128i operator()(__m128i const sse_x, __m128i const sse_y, __m128i const sse_yprime, size_t const cm) const

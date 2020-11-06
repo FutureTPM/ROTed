@@ -9,7 +9,7 @@
 
 void ddhot_test()
 {
-  const size_t numtests = 10000;
+  const size_t numtests = 1000;
   ec_params_t params(NID_X9_62_prime256v1);
   crs_t crs(params, 32);
 
@@ -33,7 +33,7 @@ void ddhot_test()
   m2 = BN_new();
 
   for (size_t i = 0; i < numtests; i++) {
-      long long start = cpucycles_amd64cpuinfo();
+      //long long start = cpucycles_amd64cpuinfo();
       alice_ot_t alice(crs);
       bob_ot_t bob(crs);
       BN_rand(m, 32, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
@@ -59,7 +59,7 @@ void ddhot_test()
       BN_sub(m2, m2, tmp);
 
       CU_ASSERT(BN_is_zero(m2));
-      long long end = cpucycles_amd64cpuinfo();
+      //long long end = cpucycles_amd64cpuinfo();
       //printf("Clock cycles elapsed: %lld\n", end - start);
   }
 

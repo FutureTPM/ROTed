@@ -46,7 +46,7 @@ void ke_test()
 
 void ot_test()
 {
-  const size_t numtests = 10000;
+  const size_t numtests = 1000;
   using P = nfl::poly_from_modulus<uint16_t, N, 14>;
   constexpr size_t rbytes = 16;
   constexpr size_t bbytes = 16;
@@ -55,7 +55,7 @@ void ot_test()
 
   for (int i = 0; i < numtests; i++)
     {
-      long long start = cpucycles_amd64cpuinfo();
+      //long long start = cpucycles_amd64cpuinfo();
       P m = unif;
       alice_ot_t<P, rbytes, bbytes> alice(sqrt((double)K/2.), 138, N);
       bob_ot_t<P, rbytes, bbytes> bob(sqrt((double)K/2.), 138, N);
@@ -157,8 +157,8 @@ void ot_test()
 	  success = success &&
 	    (memcmp(&msgb[0], &msg1[0], rbytes) == 0);
 	}
-      //CU_ASSERT(success);
-      long long end = cpucycles_amd64cpuinfo();
+      CU_ASSERT(success);
+      //long long end = cpucycles_amd64cpuinfo();
       //printf("Clock cycles elapsed: %lld\n", end - start);
     }
 }

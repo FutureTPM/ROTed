@@ -253,9 +253,9 @@ struct ntt_loop_avx2_unrolled {
   static constexpr size_t elt_count = simd_type::elt_count<value_type>::value;
   static constexpr size_t elt_count_sse = simd::sse::elt_count<value_type>::value;
 
-#ifdef __GNUC__
-  __attribute__((optimize("no-tree-vectorize")))
-#endif
+//#ifdef __GNUC__
+//  __attribute__((optimize("no-tree-vectorize")))
+//#endif
   static size_t run(value_type* x, const value_type* &wtab,
       const value_type* &winvtab, const value_type p) {
     ntt_loop_body<simd::avx2, poly, value_type> body_avx2(p);

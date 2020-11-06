@@ -58,7 +58,9 @@ endif()
 
 # optimization flags support
 if(CMAKE_BUILD_TYPE MATCHES Release)
-	set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -g3")
+    message(STATUS "Building Release")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g3 -ftree-vectorize")
+
 	foreach(FLAG -march=native -mtune=native -funroll-loops)
 		string(REGEX REPLACE -= _ FLAG_ID ${FLAG})
 		string(TOUPPER ${FLAG_ID} FLAG_ID)

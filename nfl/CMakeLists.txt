@@ -47,7 +47,7 @@ elseif(NFLLIB_USE_SSE)
 elseif(NFLLIB_USE_NEON)
   message(STATUS "Using NEON vector engine")
   add_definitions(-DNTT_NEON)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -ftree-vectorize")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -ftree-vectorize -flax-vector-conversions")
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)

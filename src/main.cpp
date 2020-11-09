@@ -28,12 +28,13 @@ void ke_test()
   const size_t numtests = 1;
   using P = nfl::poly_from_modulus<uint16_t, N, 14>;
   nfl::uniform unif;
+  nfl::FastGaussianNoise<uint8_t, P::value_type, 2> g_prng(sqrt((double)K/2.), 138, N);
 
   for (int i = 0; i < numtests; i++)
     {
       P m = unif;
-      alice_ke_t<P> alice(sqrt((double)K/2.), 138, N);
-      bob_ke_t<P> bob(sqrt((double)K/2.), 138, N);
+      alice_ke_t<P> alice(&g_prng);
+      bob_ke_t<P> bob(&g_prng);
       P pA;
       P pB, signal;
       alice.msg(pA, m);
@@ -52,13 +53,14 @@ void ot_test()
   constexpr size_t bbytes = 16;
   nfl::uniform unif;
   typedef typename sym_enc_t<rbytes, rbytes, bbytes>::cipher_t cipher_t;
+  nfl::FastGaussianNoise<uint8_t, P::value_type, 2> g_prng(sqrt((double)K/2.), 138, N);
 
   for (int i = 0; i < numtests; i++)
     {
       //long long start = cpucycles_amd64cpuinfo();
       P m = unif;
-      alice_ot_t<P, rbytes, bbytes> alice(sqrt((double)K/2.), 138, N);
-      bob_ot_t<P, rbytes, bbytes> bob(sqrt((double)K/2.), 138, N);
+      alice_ot_t<P, rbytes, bbytes> alice(&g_prng);
+      bob_ot_t<P, rbytes, bbytes> bob(&g_prng);
       int b = i & 1;
       uint32_t sid = i;
       P p0, pS, signal0, signal1;

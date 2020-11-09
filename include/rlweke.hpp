@@ -74,18 +74,18 @@ struct alice_ke_t
   P sA, eA1, eA2, kA;
   P sk;
   using value_t = typename P::value_type;
-  nfl::FastGaussianNoise<uint8_t, value_t, 2> g_prng;
+  nfl::FastGaussianNoise<uint8_t, value_t, 2> *g_prng;
 
-  alice_ke_t(double sigma, unsigned int security, unsigned int samples)
-    : g_prng(sigma, security, samples)
+  alice_ke_t(nfl::FastGaussianNoise<uint8_t, value_t, 2> *_g_prng)
+    : g_prng(_g_prng)
   {
   }
 
   void msg(P &pA, const P &m)
   {
-    sA = nfl::gaussian<uint8_t, value_t, 2>(&g_prng);
-    eA1 = nfl::gaussian<uint8_t, value_t, 2>(&g_prng, 2);
-    eA2 = nfl::gaussian<uint8_t, value_t, 2>(&g_prng, 2);
+    sA = nfl::gaussian<uint8_t, value_t, 2>(g_prng);
+    eA1 = nfl::gaussian<uint8_t, value_t, 2>(g_prng, 2);
+    eA2 = nfl::gaussian<uint8_t, value_t, 2>(g_prng, 2);
     sA.ntt_pow_phi();
     eA1.ntt_pow_phi();
 
@@ -109,18 +109,18 @@ struct bob_ke_t
   P sk;
 
   using value_t = typename P::value_type;
-  nfl::FastGaussianNoise<uint8_t, value_t, 2> g_prng;
+  nfl::FastGaussianNoise<uint8_t, value_t, 2> *g_prng;
 
-  bob_ke_t(double sigma, unsigned int security, unsigned int samples)
-    : g_prng(sigma, security, samples)
+  bob_ke_t(nfl::FastGaussianNoise<uint8_t, value_t, 2> *_g_prng)
+    : g_prng(_g_prng)
   {
   }
 
   void msg(P &pB, P &signal, const P &pA, const P &m)
   {
-    sB = nfl::gaussian<uint8_t, value_t, 2>(&g_prng);
-    eB1 = nfl::gaussian<uint8_t, value_t, 2>(&g_prng, 2);
-    eB2 = nfl::gaussian<uint8_t, value_t, 2>(&g_prng, 2);
+    sB = nfl::gaussian<uint8_t, value_t, 2>(g_prng);
+    eB1 = nfl::gaussian<uint8_t, value_t, 2>(g_prng, 2);
+    eB2 = nfl::gaussian<uint8_t, value_t, 2>(g_prng, 2);
     sB.ntt_pow_phi();
     eB1.ntt_pow_phi();
 

@@ -27,7 +27,7 @@ struct alice_ot_t
 {
   sym_enc_t<rbytes, rbytes, bbytes> sym_enc;
   typedef typename sym_enc_t<rbytes, rbytes, bbytes>::cipher_t cipher_t;
-  
+
   P sR, eR, eR1;
   P h;
   int b;
@@ -48,10 +48,10 @@ struct alice_ot_t
   uint8_t xb1[rbytes];
   uint8_t bskRb[bbytes];
   uint8_t yb[rbytes];
-  
+
   using value_t = typename P::value_type;
-  nfl::FastGaussianNoise<uint8_t, value_t, 2> g_prng;
-  
+  nfl::FastGaussianNoise<uint8_t, value_t, 2> *g_prng;
+
   rom1_t<P> rom1;
   rom_P_O<P> rom1_output;
   rom2_t<bbytes> rom2;
@@ -61,30 +61,30 @@ struct alice_ot_t
   rom_k_O<2*rbytes + bbytes> rom3_output1;
   rom4_t<rbytes> rom4;
 
-  alice_ot_t(double sigma, unsigned int security, unsigned int samples)
-    : g_prng(sigma, security, samples),
+  alice_ot_t(nfl::FastGaussianNoise<uint8_t, value_t, 2> *_g_prng)
+    : g_prng(_g_prng),
       rom1_output(h),
       rom2_output(bskR),
       rom3_output0(bxb),
       rom3_output1(bxbb)
   {
   }
-  
+
   void msg1(P &p0, uint8_t *r_sid, int b1, uint32_t sid, const P &m)
   {
     b = b1;
-    sR = nfl::gaussian<uint8_t, value_t, 2>(&g_prng);
-    eR = nfl::gaussian<uint8_t, value_t, 2>(&g_prng, 2);
-    eR1 = nfl::gaussian<uint8_t, value_t, 2>(&g_prng, 2);
+    sR = nfl::gaussian<uint8_t, value_t, 2>(g_prng);
+    eR = nfl::gaussian<uint8_t, value_t, 2>(g_prng, 2);
+    eR1 = nfl::gaussian<uint8_t, value_t, 2>(g_prng, 2);
     sR.ntt_pow_phi();
     eR.ntt_pow_phi();
     p0 = m * sR + eR;
-    
+
     memcpy(&r_sid[0], &sid, sizeof(sid));
     nfl::fastrandombytes(&r_sid[sizeof(sid)], rbytes);
-    
+
     if (b == 1)
-      {	
+      {
 	rom1(rom1_output, r_sid, rbytes + sizeof(uint32_t));
 	p0 = p0 - h;
       }
@@ -117,7 +117,7 @@ struct alice_ot_t
 	  rom2_inputj[sizeof(sid) + (i>>3)] |
 	  (skR(0, i) << (i & 7));
       }
-    
+
     rom2(rom2_output, rom2_inputj, sizeof(sid) + CEILING(P::degree, 8));
 
     if (b == 0)
@@ -220,17 +220,17 @@ struct alice_ot_t
       {
 	sym_enc.SEncIV(ab, xb, yb, bskRb, a0.iv);
 	if (memcmp(ab.buf, a0.buf, sizeof(ab.buf)) != 0)
-	  return false;	
+	  return false;
       }
     else
       {
 	sym_enc.SEncIV(ab, xb, yb, bskRb, a1.iv);
 	if (memcmp(ab.buf, a1.buf, sizeof(ab.buf)) != 0)
-	  return false;	
+	  return false;
       }
 
     rom_k_O<rbytes> rom4_output(ch);
-    
+
     uint8_t rom4_input[sizeof(sid) + 4*rbytes];
     memcpy(&rom4_input[0], &sid, sizeof(sid));
     if (b == 0)
@@ -270,7 +270,7 @@ struct alice_ot_t
 
 template<typename P, size_t rbytes, size_t bbytes>
 struct bob_ot_t
-{  
+{
   P sS, eS, eS1;
   P h;
   P p1;
@@ -283,9 +283,9 @@ struct bob_ot_t
 
   uint8_t bw0[2*rbytes + bbytes], bw1[2*rbytes + bbytes];
   uint8_t ch[rbytes];
-  
+
   using value_t = typename P::value_type;
-  nfl::FastGaussianNoise<uint8_t, value_t, 2> g_prng;
+  nfl::FastGaussianNoise<uint8_t, value_t, 2> *g_prng;
 
   rom1_t<P> rom1;
   rom_P_O<P> rom1_output;
@@ -300,9 +300,9 @@ struct bob_ot_t
 
   sym_enc_t<rbytes, rbytes, bbytes> sym_enc;
   typedef typename sym_enc_t<rbytes, rbytes, bbytes>::cipher_t cipher_t;
-  
-  bob_ot_t(double sigma, unsigned int security, unsigned int samples)
-    : g_prng(sigma, security, samples),
+
+  bob_ot_t(nfl::FastGaussianNoise<uint8_t, value_t, 2> *_g_prng)
+    : g_prng(_g_prng),
       rom1_output(h),
       rom2_output0(bskS0),
       rom2_output1(bskS1),
@@ -318,9 +318,9 @@ struct bob_ot_t
 	    uint32_t sid,
 	    const P &p0, const uint8_t *r_sid, const P &m)
   {
-    sS = nfl::gaussian<uint8_t, value_t, 2>(&g_prng);
-    eS = nfl::gaussian<uint8_t, value_t, 2>(&g_prng, 2);
-    eS1 = nfl::gaussian<uint8_t, value_t, 2>(&g_prng, 2);
+    sS = nfl::gaussian<uint8_t, value_t, 2>(g_prng);
+    eS = nfl::gaussian<uint8_t, value_t, 2>(g_prng, 2);
+    eS1 = nfl::gaussian<uint8_t, value_t, 2>(g_prng, 2);
     sS.ntt_pow_phi();
     eS.ntt_pow_phi();
     pS = m * sS + eS;
@@ -416,7 +416,7 @@ struct bob_ot_t
     uint8_t k0[bbytes], k1[bbytes];
     convPtoArray<P, bbytes>(k0, skS0);
     convPtoArray<P, bbytes>(k1, skS1);
-    
+
     uint8_t z0[rbytes], z1[rbytes];
     nfl::fastrandombytes(&z0[0], rbytes);
     nfl::fastrandombytes(&z1[0], rbytes);

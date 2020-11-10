@@ -12,14 +12,18 @@
 template<typename P, size_t bbytes>
 void convPtoArray(uint8_t arr[bbytes], const P &pol)
 {
-  for (size_t i = 0; i < MIN(bbytes, P::degree); i++)
+    uint8_t coeffs[CEILING(P::degree, 8)];
+    memset(coeffs, 0, sizeof(coeffs));
+
+  for (size_t i = 0; i < P::degree; i++)
     {
-      arr[i] = pol(0, i);
+        size_t iLower = i & 7;
+        coeffs[i / 8] |= pol(0, i) << iLower;
     }
-  for (size_t i = MIN(bbytes, P::degree); i < bbytes; i++)
-    {
-      arr[0] = 0;
-    }
+
+  rom2_t<bbytes> rom2;
+  rom_k_O<bbytes> rom2_output(arr);
+  rom2(rom2_output, coeffs, sizeof(coeffs));
 }
 
 template<typename P, size_t rbytes, size_t bbytes>

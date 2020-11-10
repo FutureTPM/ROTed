@@ -68,6 +68,7 @@ include_directories(include include/nfl include/nfl/arch include/nfl/opt include
 if (X86)
     set(NFLLIB_ASMS lib/prng/nfl_crypto_stream_salsa20_amd64_xmm6.s)
 elseif (ARM)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon")
     set(NFLLIB_ASMS lib/prng/nfl_crypto_stream_salsa20_arm32_xmm6.s)
 endif()
 file(GLOB NFLLIB_SRCS lib/prng/*.cpp lib/params/*.cpp)

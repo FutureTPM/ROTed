@@ -9,11 +9,18 @@ struct sym_enc_t
   static constexpr size_t ivbytes = 16;
   static constexpr size_t outbytes = AES_OUTPUT_LENGTH(pbytes + rbytes);
   uint8_t plain1[outbytes];
-  
+
   struct cipher_t
   {
     uint8_t buf[outbytes];
     uint8_t iv[ivbytes];
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & buf;
+      ar & iv;
+    }
   };
 
   void SEncIV(cipher_t &out,

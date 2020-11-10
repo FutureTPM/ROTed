@@ -92,6 +92,12 @@ class poly {
 #endif
 
 public:
+template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & _data;
+  }
+
   using value_type = typename params<T>::value_type;
   using greater_value_type = typename params<T>::greater_value_type;
   using signed_value_type = typename params<T>::signed_value_type;

@@ -1,3 +1,5 @@
+#ifndef __ROMS_HPP__
+#define __ROMS_HPP__
 #include "sha256.h"
 #include <algorithm>
 
@@ -21,13 +23,13 @@ struct rom_t
     : tmp_buffer(a)
   {
   }
-  
+
   void operator()(O &b, const uint8_t *data, size_t len)
   {
     sha2(a, data, len);
     b.restart();
     tmp_buffer.restart();
-    
+
     while (!b.full())
       {
 	if(tmp_buffer.empty())
@@ -109,7 +111,7 @@ struct rom_P_T
 	    state[i] = state[i] | (bit << l);
 	  }
       }
-    
+
     j++;
     k = 0;
   }
@@ -183,7 +185,7 @@ struct rom_k_T
   {
     a[32] = j;
     sha2(a1, a, 33);
-    
+
     j++;
     k = 0;
   }
@@ -213,3 +215,4 @@ using rom3_t = rom_t<rom_k_O<2 * rbytes + bbytes>,
 
 template<size_t rbytes>
 using rom4_t = rom_t<rom_k_O<rbytes>, rom_k_T>;
+#endif

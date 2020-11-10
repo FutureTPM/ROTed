@@ -132,7 +132,9 @@ struct addmod<T, simd::serial> {
   T operator()(T x, T y, size_t cm) const
   {
     auto const p = params<T>::P[cm];
+#ifdef __LP64__
     ASSERT_STRICTMOD((__int128_t)x + y < 2*p);
+#endif
     const T z = x + y;
     return z - ((z >= p) ? p : 0);
   }

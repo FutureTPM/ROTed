@@ -8,8 +8,8 @@ scriptsCommonUtilities="$currentDir/scripts-common/utilities.sh"
 writeMessage "Checking if Hyperfine is installed"
 checkBin hyperfine || errorMessage "This tool requires hyperfine. Install it please, and then run this tool again. (https://github.com/sharkdp/hyperfine)"
 
-mkdir _builds/
-mkdir bin/
+mkdir -p _builds/
+mkdir -p bin/
 
 # Build Serial implementation and art
 cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=SERIAL && make && cd ..
@@ -25,4 +25,4 @@ cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=AVX2 && make &
 cp _builds/main bin/avx2
 
 writeMessage "Running Benchmarks (this may take a while)"
-cd bin && hyperfine --warmup 100 -m 500 './avx2' './serial' './sse' './art'
+cd bin && hyperfine --warmup 100 -m 1000 './avx2' './serial' './sse' './art'

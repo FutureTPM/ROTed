@@ -2,3 +2,6 @@
 	path = scripts-common
 	url = https://gitlab.com/bertrand-benoit/scripts-common.git
 	branch = stable
+[submodule "BLAKE3"]
+	path = BLAKE3
+	url = https://github.com/BLAKE3-team/BLAKE3

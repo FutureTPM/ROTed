@@ -1,3 +1,11 @@
+## Initialize
+
+Before doing anything you need to initialize the repo by running:
+
+```
+./init-repo.sh
+```
+
 ## Install
 
 The code has the GMP, MPFR and CUnit libraries as depedencies. The following commands might be used to generate makefiles on Linux

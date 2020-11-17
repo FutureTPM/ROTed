@@ -1,6 +1,8 @@
 include(CheckCXXCompilerFlag)
 
 option(VECTOR_ENGINE "Vector Engine to be used: x86 => [AVX512|AVX2|SSE|SERIAL]; ARM => [NEON|SERIAL]" OFF)
+option(NTT_USE_NOISE_CACHE "Use a Noise cache => [ON|OFF]" OFF)
+option(OT_TEST "Test OTs (ON) or test ROTs (OFF)" OFF)
 
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
     set (X86 TRUE)
@@ -47,6 +49,14 @@ elseif(NFLLIB_USE_NEON OR VECTOR_ENGINE STREQUAL "NEON")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -ftree-vectorize -flax-vector-conversions")
 elseif(VECTOR_ENGINE STREQUAL "SERIAL")
   message(STATUS "Using Serial implementation (vector engine disabled)")
+endif()
+
+if (NTT_USE_NOISE_CACHE STREQUAL "ON")
+    add_definitions(-DNTT_USE_NOISE_CACHE)
+endif()
+
+if (OT_TEST STREQUAL "ON")
+    add_definitions(-DOT_TEST)
 endif()
 
 # C++11 support

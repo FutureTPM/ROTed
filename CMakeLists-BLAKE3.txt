@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.18)
+project(blake3 C ASM)
+
+set(BLAKE3_ASMS blake3_avx2_x86-64_unix.S blake3_sse2_x86-64_unix.S blake3_sse41_x86-64_unix.S blake3_avx512_x86-64_unix.S)
+set(BLAKE3_SRCS blake3.c blake3_dispatch.c blake3_portable.c)
+file(GLOB BLAKE3_HDRS *.h)
+
+add_library(blake3 SHARED ${BLAKE3_ASMS} ${BLAKE3_SRCS})
+install(TARGETS blake3 LIBRARY DESTINATION lib)
+
+add_library(blake3_static STATIC ${BLAKE3_ASMS} ${BLAKE3_SRCS})
+install(TARGETS blake3_static ARCHIVE DESTINATION lib)
+
+install(FILES ${BLAKE3_} DESTINATION include)
+install(FILES ${BLAKE3_HDRS} DESTINATION include)

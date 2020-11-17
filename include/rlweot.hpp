@@ -359,9 +359,7 @@ struct bob_ot_t
 	memset(&rom2_inputj[sizeof(sid)], 0, CEILING(P::degree, 8));
 	for (size_t i = 0; i < P::degree; i++)
 	  {
-	    rom2_inputj[sizeof(sid) + (i>>3)] =
-	      rom2_inputj[sizeof(sid) + (i>>3)] |
-	      (skSj(0, i) << (i & 7));
+	    rom2_inputj[sizeof(sid) + (i>>3)] = rom2_inputj[sizeof(sid) + (i>>3)] | (skSj(0, i) << (i & 7));
 	  }
 
 	rom2(out, rom2_inputj, sizeof(sid) + CEILING(P::degree, 8));

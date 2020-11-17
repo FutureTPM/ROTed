@@ -1,16 +1,16 @@
 #ifndef __ROMS_HPP__
 #define __ROMS_HPP__
-#include "sha256.h"
+//#include "sha256.h"
 #include "blake3.h"
 #include <algorithm>
 
-void sha2(uint8_t *out, const uint8_t *in, size_t len)
-{
-  sha256_ctx_t ctx;
-  sha256_init(&ctx);
-  sha256_update(&ctx, in, len);
-  sha256_finish(&ctx, out);
-}
+//void sha2(uint8_t *out, const uint8_t *in, size_t len)
+//{
+//  sha256_ctx_t ctx;
+//  sha256_init(&ctx);
+//  sha256_update(&ctx, in, len);
+//  sha256_finish(&ctx, out);
+//}
 
 void blake3(uint8_t *out, const uint8_t *in, size_t len)
 {

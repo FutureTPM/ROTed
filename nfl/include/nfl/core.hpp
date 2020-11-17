@@ -5,6 +5,7 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <stdio.h>
 
 #include "nfl/poly.hpp"
 #include "nfl/ops.hpp"

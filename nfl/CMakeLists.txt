@@ -6,6 +6,7 @@ if(APPLE)
 endif()
 
 option(VECTOR_ENGINE "Vector Engine to be used: x86 => [AVX512|AVX2|SSE|SERIAL]; ARM => [NEON|SERIAL]" OFF)
+option(NTT_USE_NOISE_CACHE "Use a Noise cache => [ON|OFF]" OFF)
 
 message(STATUS "Tring to use optimized version of NFL")
 add_definitions(-DNFL_OPTIMIZED)
@@ -57,6 +58,10 @@ elseif(NFLLIB_USE_NEON OR VECTOR_ENGINE STREQUAL "NEON")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -ftree-vectorize -flax-vector-conversions")
 elseif(VECTOR_ENGINE STREQUAL "SERIAL")
   message(STATUS "Using Serial implementation (vector engine disabled)")
+endif()
+
+if (NTT_USE_NOISE_CACHE STREQUAL "ON")
+    add_definitions(-DNTT_USE_NOISE_CACHE)
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)

@@ -13,6 +13,7 @@
 
 namespace nfl {
 
+#ifdef NTT_USE_NOISE_CACHE
 const static size_t CACHE_RAND_SIZE = 54315;
 static uint8_t CACHE_RAND[CACHE_RAND_SIZE] = {
     0x5A, 0xA6, 0x9D, 0xF2, 0x61, 0xE3, 0x42, 0x0C, 0x52, 0x27, 0xDB, 0x06, 0x42, 0x4A, 0xA3,
@@ -3637,16 +3638,18 @@ static uint8_t CACHE_RAND[CACHE_RAND_SIZE] = {
     0xBA, 0x72, 0xCD, 0xD3, 0x9F, 0xC5, 0x62, 0xB2, 0x36, 0x0E, 0xAE, 0x38, 0x92, 0x81, 0xB8,
     0xA5, 0xF3, 0xD6, 0x7D, 0xF5, 0x6D, 0x58, 0xB2, 0xDA, 0x17, 0xF1, 0x93, 0xEC, 0xB2, 0x06
 };
+static size_t pointer = 0;
+#endif
 
 static size_t constexpr crypto_stream_salsa20_KEYBYTES = 32;
 static size_t constexpr crypto_stream_salsa20_NONCEBYTES = 8;
 
-static size_t pointer = 0;
 static int init = 0;
 static unsigned char key[crypto_stream_salsa20_KEYBYTES];
 static unsigned char nonce[crypto_stream_salsa20_NONCEBYTES] = {0};
 
 void fastrandombytes(unsigned char *r, unsigned long long rlen) {
+#ifdef NTT_USE_NOISE_CACHE
     if (pointer + rlen > CACHE_RAND_SIZE) {
         pointer = pointer + rlen - CACHE_RAND_SIZE;
         memcpy(r, CACHE_RAND+pointer, rlen * sizeof(unsigned char));
@@ -3654,21 +3657,19 @@ void fastrandombytes(unsigned char *r, unsigned long long rlen) {
         memcpy(r, CACHE_RAND+pointer, rlen * sizeof(unsigned char));
         pointer+=rlen;
     }
-  //unsigned long long n = 0;
-  //int i;
-  //if (!init) {
-  //  randombytes(key, crypto_stream_salsa20_KEYBYTES);
-  //  init = 1;
-  //}
-  //nfl_crypto_stream_salsa20(r, rlen, nonce, key);
+#else
+  unsigned long long n = 0;
+  int i;
+  if (!init) {
+    randombytes(key, crypto_stream_salsa20_KEYBYTES);
+    init = 1;
+  }
+  nfl_crypto_stream_salsa20(r, rlen, nonce, key);
 
-  //for (i = 0; i < rlen; i++) {
-  //    printf("0x%02X, ", r[i]);
-  //}
-
-  //// Increase 64-bit counter (nonce)
-  //for (i = 0; i < crypto_stream_salsa20_NONCEBYTES; i++) n ^= ((unsigned long long)nonce[i]) << 8 * i;
-  //n++;
-  //for (i = 0; i < crypto_stream_salsa20_NONCEBYTES; i++) nonce[i] = (n >> 8 * i) & 0xff;
+  // Increase 64-bit counter (nonce)
+  for (i = 0; i < crypto_stream_salsa20_NONCEBYTES; i++) n ^= ((unsigned long long)nonce[i]) << 8 * i;
+  n++;
+  for (i = 0; i < crypto_stream_salsa20_NONCEBYTES; i++) nonce[i] = (n >> 8 * i) & 0xff;
+#endif
 }
 }

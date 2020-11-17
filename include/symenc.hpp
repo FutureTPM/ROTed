@@ -1,7 +1,7 @@
 #ifndef __SYMENC_HPP__
 #define __SYMENC_HPP__
-#include "aes_cbc.h"
 #include "macros.hpp"
+#include <openssl/aes.h>
 
 template<size_t pbytes, size_t rbytes, size_t bbytes>
 struct sym_enc_t
@@ -29,11 +29,13 @@ struct sym_enc_t
 	      const uint8_t key[bbytes],
 	      const uint8_t iv[ivbytes])
   {
-    memset(&plain1[0], 0, outbytes);
+    memset(&plain1[pbytes + rbytes], 0, outbytes - pbytes - rbytes);
     memcpy(&plain1[0], &in[0], pbytes);
     memcpy(&plain1[pbytes], &r[0], rbytes);
     memcpy(&out.iv[0], &iv[0], ivbytes);
-    AES_CBC_encrypt(&plain1[0], &out.buf[0], outbytes, key, bbytes, &out.iv[0]);
+    AES_KEY openssl_key;
+    AES_set_encrypt_key(key, bbytes * 8, &openssl_key);
+    AES_cbc_encrypt(plain1, out.buf, outbytes, &openssl_key, (unsigned char *)out.iv, 1);
   }
 
   void SEnc(cipher_t &out,
@@ -41,19 +43,23 @@ struct sym_enc_t
 	    const uint8_t r[rbytes],
 	    const uint8_t key[bbytes])
   {
-    memset(&plain1[0], 0, outbytes);
+    memset(&plain1[pbytes + rbytes], 0, outbytes - pbytes - rbytes);
     memcpy(&plain1[0], &in[0], pbytes);
     memcpy(&plain1[pbytes], &r[0], rbytes);
     nfl::fastrandombytes(&out.iv[0], ivbytes);
-    AES_CBC_encrypt(&plain1[0], &out.buf[0], outbytes, key, bbytes, &out.iv[0]);
+    AES_KEY openssl_key;
+    AES_set_encrypt_key(key, bbytes * 8, &openssl_key);
+    AES_cbc_encrypt(plain1, out.buf, outbytes, &openssl_key, (unsigned char *)out.iv, 1);
   }
 
   void SDec(uint8_t out[pbytes],
 	    const cipher_t &in,
 	    const uint8_t key[bbytes])
   {
-    AES_CBC_decrypt(&in.buf[0], &plain1[0], outbytes, key, bbytes, &in.iv[0]);
-    memcpy(out, &plain1[0], pbytes);
+    AES_KEY openssl_key;
+    AES_set_decrypt_key(key, bbytes * 8, &openssl_key);
+    AES_cbc_encrypt(in.buf, plain1, outbytes, &openssl_key, (unsigned char *)in.iv, 0);
+    memcpy(out, plain1, pbytes);
   }
 };
 

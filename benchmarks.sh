@@ -39,7 +39,7 @@ writeMessage "Running Benchmarks (this may take a while)"
 if [ "$ARCH" == "x86_64" ]; then
 cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './avx2_ot' './serial_ot' './sse_ot' './art_ot' && cd ..
 else
-cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './neon_ot' './art_ot' && cd ..
+cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './neon_ot' './serial_ot' './art_ot' && cd ..
 fi
 
 # Build Serial implementation and art
@@ -67,5 +67,5 @@ writeMessage "Running Benchmarks (this may take a while)"
 if [ "$ARCH" == "x86_64" ]; then
 cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './avx2_rot' './serial_rot' './sse_rot' && cd ..
 else
-cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './neon_rot' './serial_rot' './sse_rot' && cd ..
+cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './neon_rot' './serial_rot' && cd ..
 fi

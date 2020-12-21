@@ -12,7 +12,7 @@ int nfl_crypto_stream_salsa20(unsigned char *c, unsigned long long clen,
 
 #else
 
-#if defined __ARM_NEON__ && defined NTT_NEON && defined __arm__
+#if defined __ARM_NEON__ && defined __arm__
 int nfl_crypto_stream_salsa20(unsigned char *c, unsigned long long clen,
                                      const unsigned char *n,
                                      const unsigned char *k);

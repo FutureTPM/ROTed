@@ -102,4 +102,5 @@ install(FILES ${NFLLIB_HDRS_3} DESTINATION include/nfl/opt)
 install(FILES ${NFLLIB_HDRS_4} DESTINATION include/nfl/opt/arch)
 install(FILES ${NFLLIB_PRNG_HDRS} DESTINATION include/nfl/prng)
 
-add_subdirectory(tests)
+# Enable only if you want NFL tests to be built
+#add_subdirectory(tests)

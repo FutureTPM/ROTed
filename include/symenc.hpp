@@ -35,7 +35,8 @@ struct sym_enc_t
     memcpy(&out.iv[0], &iv[0], ivbytes);
     AES_KEY openssl_key;
     AES_set_encrypt_key(key, bbytes * 8, &openssl_key);
-    AES_cbc_encrypt(plain1, out.buf, outbytes, &openssl_key, (unsigned char *)out.iv, 1);
+    AES_cbc_encrypt(plain1, out.buf, outbytes, &openssl_key, (unsigned char *)out.iv, AES_ENCRYPT);
+    memcpy(&out.iv[0], &iv[0], ivbytes);
   }
 
   void SEnc(cipher_t &out,
@@ -46,19 +47,25 @@ struct sym_enc_t
     memset(&plain1[pbytes + rbytes], 0, outbytes - pbytes - rbytes);
     memcpy(&plain1[0], &in[0], pbytes);
     memcpy(&plain1[pbytes], &r[0], rbytes);
-    nfl::fastrandombytes(&out.iv[0], ivbytes);
+    uint8_t tmp_iv[ivbytes];
+    nfl::fastrandombytes(tmp_iv, ivbytes);
+    memcpy(&out.iv[0], &tmp_iv[0], ivbytes);
     AES_KEY openssl_key;
     AES_set_encrypt_key(key, bbytes * 8, &openssl_key);
-    AES_cbc_encrypt(plain1, out.buf, outbytes, &openssl_key, (unsigned char *)out.iv, 1);
+    AES_cbc_encrypt(plain1, out.buf, outbytes, &openssl_key, (unsigned char *)out.iv, AES_ENCRYPT);
+    memcpy(&out.iv[0], &tmp_iv[0], ivbytes);
   }
 
   void SDec(uint8_t out[pbytes],
 	    const cipher_t &in,
 	    const uint8_t key[bbytes])
   {
+    uint8_t tmp_iv[ivbytes];
+    memcpy(&tmp_iv[0], &in.iv[0], ivbytes);
     AES_KEY openssl_key;
     AES_set_decrypt_key(key, bbytes * 8, &openssl_key);
-    AES_cbc_encrypt(in.buf, plain1, outbytes, &openssl_key, (unsigned char *)in.iv, 0);
+    AES_cbc_encrypt(in.buf, plain1, outbytes, &openssl_key, (unsigned char *)in.iv, AES_DECRYPT);
+    memcpy((unsigned char*)in.iv, &tmp_iv[0], ivbytes);
     memcpy(out, plain1, pbytes);
   }
 };

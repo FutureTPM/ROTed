@@ -136,6 +136,9 @@ public:
   template <class It> void set(It first, It last, bool reduce_coeffs = true);
   template <class in_class, unsigned _lu_depth> void set(gaussian<in_class, T, _lu_depth> const& mode);
 
+  const T* get_coeffs() { return _data; }
+  size_t get_coeffs_size_bytes() { return N * sizeof(T); }
+
   /* assignment
    */
   poly& operator=(value_type v) { set(v); return *this; }

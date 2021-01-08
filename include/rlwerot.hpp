@@ -17,13 +17,16 @@ int random_bit()
   return b & 1;
 }
 
-template<typename P, typename R, typename RO>
-void hash_polynomial(R &rom, P &pol, RO &rom_output)
+//template<typename P, typename R, typename RO>
+template<typename P>
+void hash_polynomial(P &pol, uint8_t* out)
 {
-  uint8_t buf[P::degree];
-  constexpr size_t len = sizeof(buf);
-  convPtoArray<P, len>(buf, pol);
-  rom(rom_output, buf, len);
+  // uint8_t buf[P::degree];
+  // constexpr size_t len = sizeof(buf);
+  // convPtoArray<P, len>(buf, pol);
+  // rom(rom_output, buf, len);
+
+  blake3(out, (const uint8_t*)pol.get_coeffs(), pol.get_coeffs_size_bytes());
 }
 
 template<typename P, size_t rbytes, size_t bbytes, size_t HASHSIZE>
@@ -45,13 +48,14 @@ struct alice_rot_t
   uint8_t S1[bbytes];
 
   rom2_t<HASHSIZE> romMc;
-  rom_k_O<HASHSIZE> romMc_output;
+  //rom_k_O<HASHSIZE> romMc_output;
+  uint8_t romMc_output[HASHSIZE];
   uint8_t hMc[HASHSIZE];
 
   alice_rot_t(nfl::FastGaussianNoise<uint8_t, value_t, 2> *_g_prng)
     : g_prng(_g_prng),
-      rom1_output(h),
-      romMc_output(hMc)
+      rom1_output(h)
+      //romMc_output(hMc)
   {
   }
 
@@ -107,7 +111,9 @@ struct alice_rot_t
         ke_t<P>::mod2(skR, kR, signal1);
       }
 
-    hash_polynomial(romMc, skR, romMc_output);
+    //hash_polynomial(romMc, skR, romMc_output);
+    hash_polynomial(skR, romMc_output);
+    memcpy(hMc, romMc_output, sizeof(uint8_t) * HASHSIZE);
 
     if (memcmp(ha0, hMc, HASHSIZE) == 0) {
       b = 0;
@@ -223,15 +229,27 @@ struct bob_rot_t
     memcpy(au1, u1, bbytes);
 
     if (a1 == 0) {
-      rom_k_O<HASHSIZE> romMa0_output(hma0);
-      rom_k_O<HASHSIZE> romMa1_output(hma1);
-      hash_polynomial(romM, skS0, romMa0_output);
-      hash_polynomial(romM, skS1, romMa1_output);
+      //rom_k_O<HASHSIZE> romMa0_output(hma0);
+      //rom_k_O<HASHSIZE> romMa1_output(hma1);
+      //hash_polynomial(romM, skS0, romMa0_output);
+      //hash_polynomial(romM, skS1, romMa1_output);
+      uint8_t romMa0_output[HASHSIZE];
+      uint8_t romMa1_output[HASHSIZE];
+      hash_polynomial(skS0, romMa0_output);
+      hash_polynomial(skS1, romMa1_output);
+      memcpy(hma0, romMa0_output, HASHSIZE * sizeof(uint8_t));
+      memcpy(hma1, romMa1_output, HASHSIZE * sizeof(uint8_t));
     } else {
-      rom_k_O<HASHSIZE> romMa0_output(hma1);
-      rom_k_O<HASHSIZE> romMa1_output(hma0);
-      hash_polynomial(romM, skS0, romMa0_output);
-      hash_polynomial(romM, skS1, romMa1_output);
+      //rom_k_O<HASHSIZE> romMa0_output(hma1);
+      //rom_k_O<HASHSIZE> romMa1_output(hma0);
+      //hash_polynomial(romM, skS0, romMa0_output);
+      //hash_polynomial(romM, skS1, romMa1_output);
+      uint8_t romMa0_output[HASHSIZE];
+      uint8_t romMa1_output[HASHSIZE];
+      hash_polynomial(skS0, romMa0_output);
+      hash_polynomial(skS1, romMa1_output);
+      memcpy(hma1, romMa0_output, HASHSIZE * sizeof(uint8_t));
+      memcpy(hma0, romMa1_output, HASHSIZE * sizeof(uint8_t));
     }
   }
 

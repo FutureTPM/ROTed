@@ -1,11 +1,21 @@
 #include <CUnit/Basic.h>
 #include <iostream>
+#include <stdlib.h>
 #include "ddhot.hpp"
 #include "ddhcry.hpp"
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
 #include "cpucycles.h"
+#include "blake3.h"
+
+void blake3(uint8_t *out, const uint8_t *in, size_t len)
+{
+  blake3_hasher hasher;
+  blake3_hasher_init(&hasher);
+  blake3_hasher_update(&hasher, in, len);
+  blake3_hasher_finalize(&hasher, out, BLAKE3_OUT_LEN);
+}
 
 void ddhot_test()
 {
@@ -31,6 +41,9 @@ void ddhot_test()
   m = BN_new();
   m1 = BN_new();
   m2 = BN_new();
+
+  //uint8_t dump[4096];
+  //BN_CTX* dump2 = BN_CTX_new();
 
   for (size_t i = 0; i < numtests; i++) {
       //long long start = cpucycles_amd64cpuinfo();
@@ -61,6 +74,195 @@ void ddhot_test()
       //CU_ASSERT(BN_is_zero(m2));
       //long long end = cpucycles_amd64cpuinfo();
       //printf("Clock cycles elapsed: %lld\n", end - start);
+  }
+
+  EC_POINT_free(g);
+  EC_POINT_free(h);
+  EC_POINT_free(u);
+  EC_POINT_free(v);
+  EC_POINT_free(u1);
+  EC_POINT_free(v1);
+  BN_free(m);
+  BN_free(m1);
+  BN_free(m2);
+}
+
+void ddhrot_test()
+{
+  const size_t numtests = 1000;
+  ec_params_t params(NID_X9_62_prime256v1);
+  crs_t crs(params, 32);
+
+  EC_POINT *g, *h, *u, *v, *u1, *v1;
+  int b, c;
+  uint8_t r0_receiver[32], r1_receiver[32], r_sender[32];
+  uint8_t r0_receiver_hash[32], r1_receiver_hash[32], r_pipe_c_hash[32], r_pipe_c_receiver_hash[32];
+  uint8_t r0_sender_hash[32], r1_sender_hash[32];
+  BIGNUM *m, *m1, *m2;
+
+  boost::mt19937 rng;
+  boost::uniform_int<> dist(0,1);
+  boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
+      bit(rng, dist);
+
+  boost::uniform_int<> dist_char(0,255);
+  boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
+      byte(rng, dist);
+
+  g = EC_POINT_new(params.group);
+  h = EC_POINT_new(params.group);
+  u = EC_POINT_new(params.group);
+  v = EC_POINT_new(params.group);
+  u1 = EC_POINT_new(params.group);
+  v1 = EC_POINT_new(params.group);
+  m = BN_new();
+  m1 = BN_new();
+  m2 = BN_new();
+
+  for (size_t i = 0; i < numtests; i++) {
+      // Sender
+      c = bit();
+      for (size_t j = 0; j < 32; j++) {
+          r_sender[j] = byte();
+      }
+
+      uint8_t tmp_sender[4 + 32];
+      memcpy(tmp_sender, &c, sizeof(c));
+      memcpy(&tmp_sender[4], r_sender, 32);
+      blake3(r_pipe_c_hash, tmp_sender, 32 + 4);
+
+      // Receiver
+      for (size_t j = 0; j < 32; j++) {
+          r0_receiver[j] = byte();
+          r1_receiver[j] = byte();
+      }
+
+      blake3(r0_receiver_hash, r0_receiver, 32);
+      blake3(r1_receiver_hash, r1_receiver, 32);
+
+      /*
+       * START Standard OT
+       */
+      //long long start = cpucycles_amd64cpuinfo();
+      alice_ot_t alice(crs);
+      bob_ot_t bob(crs);
+      BN_rand(m, 32, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
+      BN_rand(m1, 32, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
+
+      b = bit();
+
+      alice.msg1(g, h, b);
+      bob.msg1(u, v,
+              u1, v1,
+              g, h,
+              m, m1);
+      alice.msg2(m2,
+              u, v,
+              u1, v1);
+
+      BIGNUM *tmp = nullptr;
+      if (b == 0) {
+          tmp = m;
+      } else {
+          tmp = m1;
+      }
+      BN_sub(m2, m2, tmp);
+
+      CU_ASSERT(BN_is_zero(m2));
+      //long long end = cpucycles_amd64cpuinfo();
+      //printf("Clock cycles elapsed: %lld\n", end - start);
+      /*
+       * END Standard OT
+       */
+      int m_bin_size = BN_num_bytes(m);
+      int m1_bin_size = BN_num_bytes(m1);
+
+      CU_ASSERT(m_bin_size == 4);
+      CU_ASSERT(m1_bin_size == 4);
+
+      // Sender
+      uint8_t rc_Mc_xor_result[32], other_rc_Mc_xor_result[32], m_bin_sender[32], m1_bin_sender[32];
+      uint8_t *selected_sender_r, *selected_sender_m, *other_selected_sender_r, *other_selected_sender_m;
+
+      blake3(r0_sender_hash, r0_receiver, 32);
+      blake3(r1_sender_hash, r1_receiver, 32);
+
+      bool r0_all_equal = true;
+      bool r1_all_equal = true;
+      for (size_t j = 0; j < 32; j++) {
+          r0_all_equal &= (r0_sender_hash[j] == r0_receiver_hash[j]);
+          r1_all_equal &= (r1_sender_hash[j] == r1_receiver_hash[j]);
+
+          m_bin_sender[j] = 0;
+          m1_bin_sender[j] = 0;
+      }
+      CU_ASSERT(r0_all_equal);
+      CU_ASSERT(r1_all_equal);
+
+      BN_bn2bin(m, m_bin_sender);
+      BN_bn2bin(m1, m1_bin_sender);
+
+      if ((c ^ 0) == 0) {
+          selected_sender_r = r0_receiver;
+          other_selected_sender_r = r1_receiver;
+
+          selected_sender_m = m_bin_sender;
+          other_selected_sender_m = m1_bin_sender;
+      } else {
+          selected_sender_r = r1_receiver;
+          other_selected_sender_r = r0_receiver;
+
+          selected_sender_m = m1_bin_sender;
+          other_selected_sender_m = m_bin_sender;
+      }
+
+      // r_{c ^ 0} ^ M_{c ^ 0}
+      // r_{c ^ 1} ^ M_{c ^ 1}
+      for (size_t j = 0; j < 32; j++) {
+          rc_Mc_xor_result[j] = selected_sender_r[j] ^ selected_sender_m[j];
+          other_rc_Mc_xor_result[j] = other_selected_sender_r[j] ^ other_selected_sender_m[j];
+      }
+
+      // Receiver
+      int c_xor_b_result;
+      uint8_t rb_Mb_xor_result[32], m_bin_receiver[32], m1_bin_receiver[32];
+
+      uint8_t tmp_receiver[4 + 32];
+      memcpy(tmp_receiver, &c, sizeof(c));
+      memcpy(&tmp_receiver[4], r_sender, 32);
+      blake3(r_pipe_c_receiver_hash, tmp_receiver, 32 + 4);
+
+      bool r_pipe_c_all_equal = true;
+      for (size_t j = 0; j < 32; j++) {
+          r_pipe_c_all_equal &= (r_pipe_c_receiver_hash[j] == r_pipe_c_hash[j]);
+
+          m_bin_receiver[j] = 0;
+          m1_bin_receiver[j] = 0;
+      }
+      CU_ASSERT(r_pipe_c_all_equal);
+
+      BN_bn2bin(m, m_bin_receiver);
+      BN_bn2bin(m1, m1_bin_receiver);
+
+      // c ^ b
+      c_xor_b_result = c ^ b;
+      // r_b ^ M_b
+      if (b == 0) {
+          for (size_t j = 0; j < 32; j++) {
+              rb_Mb_xor_result[j] = r0_receiver[j] ^ m_bin_receiver[j];
+          }
+      } else {
+          for (size_t j = 0; j < 32; j++) {
+              rb_Mb_xor_result[j] = r1_receiver[j] ^ m1_bin_receiver[j];
+          }
+      }
+
+      // Final Check
+      bool m_all_equal = true;
+      for (size_t j = 0; j < 32; j++) {
+          m_all_equal &= (rb_Mb_xor_result[j] == rc_Mc_xor_result[j]);
+      }
+      CU_ASSERT(m_all_equal);
   }
 
   EC_POINT_free(g);
@@ -123,6 +325,7 @@ int main(int argc, char *argv[])
   //    abort();
   //  }
 
+#ifdef OT_TEST
   CU_pSuite suite1 = CU_add_suite("DDHOT", NULL, NULL);
   if (suite1 == NULL) abort();
 
@@ -130,6 +333,15 @@ int main(int argc, char *argv[])
     {
       abort();
     }
+#else
+  CU_pSuite suite2 = CU_add_suite("DDHROT", NULL, NULL);
+  if (suite2 == NULL) abort();
+
+  if ((NULL == CU_add_test(suite2, "ddhrot", ddhrot_test)))
+    {
+      abort();
+    }
+#endif
 
   CU_basic_set_mode(CU_BRM_VERBOSE);
   CU_basic_run_tests();

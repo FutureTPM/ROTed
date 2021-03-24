@@ -14,7 +14,15 @@ rm -rf _builds/
 mkdir -p _builds/
 mkdir -p bin/
 
-# Build Serial implementation and art
+# Build PVW08 OT implementation
+cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=SERIAL -DNTT_USE_NOISE_CACHE=ON -DOT_TEST=ON && make && cd ..
+cp _builds/rel_art/main_rel bin/art_ot
+
+# Build PVW08 ROT implementation
+cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=SERIAL -DNTT_USE_NOISE_CACHE=ON -DOT_TEST=OFF && make && cd ..
+cp _builds/rel_art/main_rel bin/art_rot
+
+# Build Serial implementation
 cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=SERIAL -DNTT_USE_NOISE_CACHE=ON -DOT_TEST=ON && make && cd ..
 cp _builds/main bin/serial_ot
 cp _builds/rel_art/main_rel bin/art_ot

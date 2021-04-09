@@ -52,6 +52,8 @@ struct alice_rot_t
   uint8_t romMc_output[HASHSIZE];
   uint8_t hMc[HASHSIZE];
 
+   rom2_t<HASHSIZE> romFinalM;
+
   alice_rot_t(nfl::FastGaussianNoise<uint8_t, value_t, 2> *_g_prng)
     : g_prng(_g_prng),
       rom1_output(h)
@@ -91,12 +93,12 @@ struct alice_rot_t
       }
   }
 
-  bool msg2(uint8_t Mb[bbytes],
+  bool msg2(uint8_t Mb[HASHSIZE],
 	    int &b,
 	    uint8_t bS0[bbytes], uint8_t bS1[bbytes],
 	    uint32_t sid, const P &pS, const P &signal0, const P &signal1,
             const uint8_t ha0[HASHSIZE], const uint8_t ha1[HASHSIZE],
-            const uint8_t u0[bbytes], const uint8_t u1[bbytes])
+            const uint8_t u[bbytes])
   {
     kR = pS * sR;
     kR.invntt_pow_invphi();
@@ -123,23 +125,30 @@ struct alice_rot_t
       return false;
     }
 
-    convPtoArray<P, bbytes>(Mb, skR);
+    int sid_size = sizeof(sid);
+    uint8_t Mb_sid[sid_size + bbytes];
+    memcpy(&Mb_sid[0], &sid, sid_size);
+    
+    convPtoArray<P, bbytes>(&Mb_sid[sid_size], skR);
 
     if (b1 == 0)
       {
 	for (int i = 0; i < bbytes; i++)
 	  {
-	    Mb[i] ^= S0[i] ^ u0[i];
+	    Mb_sid[sid_size + i] ^= S0[i] ^ u[i];
 	  }
       }
     else
       {
 	for (int i = 0; i < bbytes; i++)
 	  {
-	    Mb[i] ^= S1[i] ^ u1[i];
+	    Mb_sid[sid_size + i] ^= S1[i] ^ u[i];
 	  }
       }
 
+    rom_k_O<HASHSIZE> romFinalM_output(Mb);
+    romFinalM(romFinalM_output, Mb_sid, sizeof(Mb_sid));
+    
     memcpy(bS0, S0, bbytes);
     memcpy(bS1, S1, bbytes);
     return true;
@@ -163,8 +172,7 @@ struct bob_rot_t
   uint8_t hS0b[HASHSIZE];
   uint8_t hS1b[HASHSIZE];
 
-  uint8_t u0[bbytes];
-  uint8_t u1[bbytes];
+  uint8_t u[bbytes];
 
   using value_t = typename P::value_type;
   nfl::FastGaussianNoise<uint8_t, value_t, 2>* g_prng;
@@ -186,7 +194,7 @@ struct bob_rot_t
   }
 
   void msg1(P &pS, P &signal0, P &signal1,
-	    uint8_t au0[bbytes], uint8_t au1[bbytes],
+	    uint8_t au[bbytes],
             uint8_t hma0[HASHSIZE], uint8_t hma1[HASHSIZE],
             uint32_t sid,
 	    const uint8_t hS0a[HASHSIZE],
@@ -222,11 +230,9 @@ struct bob_rot_t
 
     a1 = random_bit();
 
-    nfl::fastrandombytes(&u0[0], sizeof(u0));
-    nfl::fastrandombytes(&u1[0], sizeof(u1));
+    nfl::fastrandombytes(&u[0], sizeof(u));
 
-    memcpy(au0, u0, bbytes);
-    memcpy(au1, u1, bbytes);
+    memcpy(au, u, bbytes);
 
     if (a1 == 0) {
       //rom_k_O<HASHSIZE> romMa0_output(hma0);
@@ -253,7 +259,8 @@ struct bob_rot_t
     }
   }
 
-  bool msg2(uint8_t msg0[bbytes], uint8_t msg1[bbytes],
+  bool msg2(uint8_t msg0[HASHSIZE], uint8_t msg1[HASHSIZE],
+	    uint32_t sid,
 	    const uint8_t S0[bbytes], const uint8_t S1[bbytes])
   {
     romM(romhS0b_output, S0, bbytes);
@@ -265,28 +272,40 @@ struct bob_rot_t
 	return false;
       }
 
+    int sid_size = sizeof(sid);
+    uint8_t msg0_sid[sid_size + bbytes];
+    uint8_t msg1_sid[sid_size + bbytes];
+
+    memcpy(&msg0_sid[0], &sid, sid_size);
+    memcpy(&msg1_sid[0], &sid, sid_size);
+    
     if (a1 == 0)
       {
-	convPtoArray<P, bbytes>(msg0, skS0);
-	convPtoArray<P, bbytes>(msg1, skS1);
+	convPtoArray<P, bbytes>(&msg0_sid[sid_size], skS0);
+	convPtoArray<P, bbytes>(&msg1_sid[sid_size], skS1);
 
 	for (int i = 0; i < bbytes; i++)
 	  {
-	    msg0[i] ^= S0[i] ^ u0[i];
-	    msg1[i] ^= S1[i] ^ u1[i];
+	    msg0_sid[i + sid_size] ^= S0[i] ^ u[i];
+	    msg1_sid[i + sid_size] ^= S1[i] ^ u[i];
 	  }
       }
     else
       {
-	convPtoArray<P, bbytes>(msg0, skS1);
-	convPtoArray<P, bbytes>(msg1, skS0);
+	convPtoArray<P, bbytes>(&msg0_sid[sid_size], skS1);
+	convPtoArray<P, bbytes>(&msg1_sid[sid_size], skS0);
 
 	for (int i = 0; i < bbytes; i++)
 	  {
-	    msg0[i] ^= S1[i] ^ u1[i];
-	    msg1[i] ^= S0[i] ^ u0[i];
+	    msg0_sid[i + sid_size] ^= S1[i] ^ u[i];
+	    msg1_sid[i + sid_size] ^= S0[i] ^ u[i];
 	  }
       }
+    
+    rom_k_O<HASHSIZE> rommsg0_output(msg0);
+    rom_k_O<HASHSIZE> rommsg1_output(msg1);
+    romM(rommsg0_output, msg0_sid, sizeof(msg0_sid));
+    romM(rommsg1_output, msg1_sid, sizeof(msg1_sid));
 
     return true;
   }

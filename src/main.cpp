@@ -7,8 +7,8 @@
 #include <algorithm>
 #include "comm.hpp"
 #include "comm_rot.hpp"
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
+// #include <boost/archive/text_oarchive.hpp>
+// #include <boost/archive/text_iarchive.hpp>
 #include <fstream>
 #include "cpucycles.h"
 
@@ -362,7 +362,7 @@ void comm_rot_test()
       alice_rot_t<P, rbytes, bbytes, HASHSIZE> alice(&g_prng);
       bob_rot_t<P, rbytes, bbytes, HASHSIZE> bob(&g_prng);
       uint32_t sid = i;
-      uint8_t msg0[bbytes], msg1[bbytes], msgb[bbytes];
+      uint8_t msg0[HASHSIZE], msg1[HASHSIZE], msgb[HASHSIZE];
       int b;
 
       comm_rot_msg_1_t<P, rbytes, HASHSIZE> msg_1a, msg_1b;
@@ -388,7 +388,7 @@ void comm_rot_test()
       //}
 
       bob.msg1(msg_2a.pS, msg_2a.signal0, msg_2a.signal1,
-               msg_2a.u0, msg_2a.u1, msg_2a.hma0, msg_2a.hma1,
+               msg_2a.u, msg_2a.hma0, msg_2a.hma1,
                msg_1b.sid,
            msg_1b.hS0, msg_1b.hS1,
                msg_1b.p0, msg_1b.r_sid, m);
@@ -411,7 +411,7 @@ void comm_rot_test()
                       msg_2b.sid, msg_2b.pS,
                                       msg_2b.signal0, msg_2b.signal1,
                                       msg_2b.hma0, msg_2b.hma1,
-                                      msg_2b.u0, msg_2b.u1);
+                                      msg_2b.u);
       msg_3a.sid = msg_2b.sid;
 
       //if (alice.b1 == 0)
@@ -437,20 +437,20 @@ void comm_rot_test()
           //  ia >> msg_3b;
           //}
 
-          success = success && bob.msg2(msg0, msg1, msg_3b.S0, msg_3b.S1);
+	    success = success && bob.msg2(msg0, msg1, msg_3b.sid, msg_3b.S0, msg_3b.S1);
         }
 
       if (b == 0)
         {
           success = success &&
-            (memcmp(&msgb[0], &msg0[0], bbytes) == 0);
+            (memcmp(&msgb[0], &msg0[0], HASHSIZE) == 0);
         }
       else
         {
           success = success &&
-            (memcmp(&msgb[0], &msg1[0], bbytes) == 0);
+            (memcmp(&msgb[0], &msg1[0], HASHSIZE) == 0);
         }
-      //CU_ASSERT(success);
+      CU_ASSERT(success);
     }
 }
 
@@ -471,11 +471,10 @@ void rot_test()
       bob_rot_t<P, rbytes, bbytes, HASHSIZE> bob(&g_prng);
       uint32_t sid = i;
       P p0, pS, signal0, signal1;
-      uint8_t u0[bbytes];
-      uint8_t u1[bbytes];
+      uint8_t u[bbytes];
       uint8_t r_sid[sizeof(sid) + rbytes];
       uint8_t a0[HASHSIZE], a1[HASHSIZE];
-      uint8_t msg0[bbytes], msg1[bbytes], msgb[bbytes];
+      uint8_t msg0[HASHSIZE], msg1[HASHSIZE], msgb[HASHSIZE];
       uint8_t hS0[HASHSIZE];
       uint8_t hS1[HASHSIZE];
       uint8_t S0[bbytes];
@@ -485,7 +484,7 @@ void rot_test()
       bool success = true;
       alice.msg1(p0, r_sid, hS0, hS1, sid, m);
       bob.msg1(pS, signal0, signal1,
-               u0, u1, a0, a1,
+               u, a0, a1,
                sid,
            hS0, hS1,
                p0, r_sid, m);
@@ -493,7 +492,7 @@ void rot_test()
                       sid, pS,
                                       signal0, signal1,
                                       a0, a1,
-                                      u0, u1);
+                                      u);
       //if (alice.b1 == 0)
       //  {
       //    CU_ASSERT(pol_equal(alice.skR, bob.skS0));
@@ -504,18 +503,18 @@ void rot_test()
       //  }
       if (success)
         {
-          success = success && bob.msg2(msg0, msg1, S0, S1);
+          success = success && bob.msg2(msg0, msg1, sid, S0, S1);
         }
 
       if (b == 0)
         {
           success = success &&
-            (memcmp(&msgb[0], &msg0[0], bbytes) == 0);
+            (memcmp(&msgb[0], &msg0[0], HASHSIZE) == 0);
         }
       else
         {
           success = success &&
-            (memcmp(&msgb[0], &msg1[0], bbytes) == 0);
+            (memcmp(&msgb[0], &msg1[0], HASHSIZE) == 0);
         }
       //CU_ASSERT(success);
       //long long end = cpucycles_amd64cpuinfo();
@@ -587,7 +586,7 @@ int main(int argc, char *argv[])
       abort();
     }
 #else
-  CU_pSuite suite4 = CU_add_suite("RLWEOT", NULL, NULL);
+  CU_pSuite suite4 = CU_add_suite("RLWEROT", NULL, NULL);
   if (suite4 == NULL) abort();
 
   if ((NULL == CU_add_test(suite4, "comm_rot_test", comm_rot_test)))

@@ -10,7 +10,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 find_package(GMP REQUIRED)
 find_package(MPFR REQUIRED)
 find_package(CUNIT REQUIRED)
-find_package(Boost REQUIRED serialization)
+find_package(Boost REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 #add_subdirectory(crypto_project)

@@ -40,17 +40,15 @@ struct rom_t
     b.restart();
     tmp_buffer.restart();
 
-    while (!b.full())
-      {
-	if(tmp_buffer.empty())
-	  tmp_buffer.refresh();
+    while (!b.full()) {
+        if(tmp_buffer.empty())
+            tmp_buffer.refresh();
 
-	typename T::value_t ti = tmp_buffer.next();
-	if (tmp_buffer.filter(ti))
-	  {
-	    b.next() = ti;
-	  }
-      }
+        typename T::value_t ti = tmp_buffer.next();
+        if (tmp_buffer.filter(ti)) {
+            b.next() = ti;
+        }
+    }
   }
 };
 
@@ -110,18 +108,16 @@ struct rom_P_T
     //sha2(a1, a, 33);
     blake3(a1, a, 33);
 
-    for (size_t i = 0; i < N; i++)
-      {
-	state[i] = 0;
-	size_t offset = i * P::nbits;
-	for (size_t l = 0; l < P::nbits; l++)
-	  {
-	    size_t nword = (offset + l) >> 3;
-	    size_t nshift = (offset + l) & 7;
-	    typename P::value_type bit = (a1[nword] >> nshift) & 1;
-	    state[i] = state[i] | (bit << l);
-	  }
-      }
+    for (size_t i = 0; i < N; i++) {
+        state[i] = 0;
+        size_t offset = i * P::nbits;
+        for (size_t l = 0; l < P::nbits; l++) {
+            size_t nword = (offset + l) >> 3;
+            size_t nshift = (offset + l) & 7;
+            typename P::value_type bit = (a1[nword] >> nshift) & 1;
+            state[i] = state[i] | (bit << l);
+        }
+    }
 
     j++;
     k = 0;

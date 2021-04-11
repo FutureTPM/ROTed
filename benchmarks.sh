@@ -18,14 +18,26 @@ mkdir -p bin/
 cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=SERIAL -DNTT_USE_NOISE_CACHE=ON -DOT_TEST=ON && make && cd ..
 cp _builds/rel_art/main_rel bin/art_ot
 
+rm -rf _builds/
+mkdir -p _builds/
+
 # Build PVW08 ROT implementation
 cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=SERIAL -DNTT_USE_NOISE_CACHE=ON -DOT_TEST=OFF && make && cd ..
-cp _builds/rel_art/main_rel bin/art_rot
+cp _builds/rel_art/main_rel bin/art_ot_rotted
+
+rm -rf _builds/
+mkdir -p _builds/
 
 # Build Serial implementation
 cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=SERIAL -DNTT_USE_NOISE_CACHE=ON -DOT_TEST=ON && make && cd ..
 cp _builds/main bin/serial_ot
-cp _builds/rel_art/main_rel bin/art_ot
+
+rm -rf _builds/
+mkdir -p _builds/
+
+# Build Serial implementation ROTted
+cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=SERIAL -DNTT_USE_NOISE_CACHE=ON -DOT_ROTTED_TEST=ON && make && cd ..
+cp _builds/main bin/serial_ot_rotted
 
 rm -rf _builds/
 mkdir -p _builds/
@@ -38,9 +50,21 @@ cp _builds/main bin/sse_ot
 rm -rf _builds/
 mkdir -p _builds/
 
+cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=SSE -DNTT_USE_NOISE_CACHE=ON -DOT_ROTTED_TEST=ON && make && cd ..
+cp _builds/main bin/sse_ot_rotted
+
+rm -rf _builds/
+mkdir -p _builds/
+
 # Build AVX2 implementation
 cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=AVX2 -DNTT_USE_NOISE_CACHE=ON -DOT_TEST=ON && make && cd ..
 cp _builds/main bin/avx2_ot
+
+rm -rf _builds/
+mkdir -p _builds/
+
+cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=AVX2 -DNTT_USE_NOISE_CACHE=ON -DOT_ROTTED_TEST=ON && make && cd ..
+cp _builds/main bin/avx2_ot_rotted
 
 rm -rf _builds/
 mkdir -p _builds/
@@ -50,6 +74,12 @@ else
 # Build NEON implementation
 cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=NEON -DNTT_USE_NOISE_CACHE=ON -DOT_TEST=ON && make && cd ..
 cp _builds/main bin/neon_ot
+
+rm -rf _builds/
+mkdir -p _builds/
+
+cd _builds && cmake .. -DCMAKE_BUILD_TYPE=Release -DVECTOR_ENGINE=NEON -DNTT_USE_NOISE_CACHE=ON -DOT_ROTTED_TEST=ON && make && cd ..
+cp _builds/main bin/neon_ot_rotted
 
 rm -rf _builds/
 mkdir -p _builds/
@@ -91,7 +121,7 @@ fi
 
 writeMessage "Running Benchmarks (this may take a while)"
 if [ "$ARCH" == "x86_64" ]; then
-cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './avx2_rot' './serial_rot' './sse_rot'  './avx2_ot' './serial_ot' './sse_ot' './art_ot'&& cd ..
+cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './avx2_rot' './serial_rot' './sse_rot'  './avx2_ot' './serial_ot' './sse_ot' './art_ot' './art_ot_rotted' './avx2_ot_rotted' './serial_ot_rotted' './sse_ot_rotted' && cd ..
 else
-cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './neon_rot' './serial_rot' './neon_ot' './serial_ot' './art_ot' && cd ..
+cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './neon_rot' './serial_rot' './neon_ot' './serial_ot' './art_ot' './neon_ot_rotted' './serial_ot_rotted' './art_ot_rotted' && cd ..
 fi

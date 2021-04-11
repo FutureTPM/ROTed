@@ -94,9 +94,9 @@ void ddhrot_test()
   crs_t crs(params, 32);
 
   EC_POINT *g, *h, *u, *v, *u1, *v1;
-  int b, c;
+  int b, c_sender;
   uint8_t r0_receiver[32], r1_receiver[32], r_sender[32];
-  uint8_t r0_receiver_hash[32], r1_receiver_hash[32], r_pipe_c_hash[32], r_pipe_c_receiver_hash[32];
+  uint8_t r0_receiver_hash[32], r1_receiver_hash[32], c_pipe_r_sender_hash[32], c_pipe_r_receiver_hash[32], c_pipe_r_receiver_hash_generated[32];
   uint8_t r0_sender_hash[32], r1_sender_hash[32];
   BIGNUM *m, *m1, *m2;
 
@@ -121,24 +121,19 @@ void ddhrot_test()
 
   for (size_t i = 0; i < numtests; i++) {
       // Sender
-      c = bit();
-      for (size_t j = 0; j < 32; j++) {
-          r_sender[j] = byte();
-      }
-
-      uint8_t tmp_sender[4 + 32];
-      memcpy(tmp_sender, &c, sizeof(c));
-      memcpy(&tmp_sender[4], r_sender, 32);
-      blake3(r_pipe_c_hash, tmp_sender, 32 + 4);
+      c_sender = bit();
 
       // Receiver
       for (size_t j = 0; j < 32; j++) {
           r0_receiver[j] = byte();
           r1_receiver[j] = byte();
       }
-
       blake3(r0_receiver_hash, r0_receiver, 32);
       blake3(r1_receiver_hash, r1_receiver, 32);
+
+      uint8_t r0_sender_hash[32], r1_sender_hash[32];
+      memcpy(r0_sender_hash, r0_receiver_hash, 32);
+      memcpy(r1_sender_hash, r1_receiver_hash, 32);
 
       /*
        * START Standard OT
@@ -177,15 +172,20 @@ void ddhrot_test()
       int m_bin_size = BN_num_bytes(m);
       int m1_bin_size = BN_num_bytes(m1);
 
-      CU_ASSERT(m_bin_size == 4);
-      CU_ASSERT(m1_bin_size == 4);
+      CU_ASSERT(m_bin_size <= 32);
+      CU_ASSERT(m1_bin_size <= 32);
 
       // Sender
+      // Receive r0 and r1
+      uint8_t r0_sender[32], r1_sender[32];
+      memcpy(r0_sender, r0_receiver, 32);
+      memcpy(r1_sender, r1_receiver, 32);
+
       uint8_t rc_Mc_xor_result[32], other_rc_Mc_xor_result[32], m_bin_sender[32], m1_bin_sender[32];
       uint8_t *selected_sender_r, *selected_sender_m, *other_selected_sender_r, *other_selected_sender_m;
 
-      blake3(r0_sender_hash, r0_receiver, 32);
-      blake3(r1_sender_hash, r1_receiver, 32);
+      blake3(r0_sender_hash, r0_sender, 32);
+      blake3(r1_sender_hash, r1_sender, 32);
 
       bool r0_all_equal = true;
       bool r1_all_equal = true;
@@ -202,65 +202,54 @@ void ddhrot_test()
       BN_bn2bin(m, m_bin_sender);
       BN_bn2bin(m1, m1_bin_sender);
 
-      if ((c ^ 0) == 0) {
-          selected_sender_r = r0_receiver;
-          other_selected_sender_r = r1_receiver;
-
-          selected_sender_m = m_bin_sender;
-          other_selected_sender_m = m1_bin_sender;
+      if ((c_sender ^ 0) == 0) {
+          for (size_t j = 0; j < 32; j++) {
+              rc_Mc_xor_result[j] = r0_sender[j] ^ m_bin_sender[j];
+              other_rc_Mc_xor_result[j] = r1_sender[j] ^ m1_bin_sender[j];
+          }
       } else {
-          selected_sender_r = r1_receiver;
-          other_selected_sender_r = r0_receiver;
-
-          selected_sender_m = m1_bin_sender;
-          other_selected_sender_m = m_bin_sender;
+          for (size_t j = 0; j < 32; j++) {
+              rc_Mc_xor_result[j] = r1_sender[j] ^ m1_bin_sender[j];
+              other_rc_Mc_xor_result[j] = r0_sender[j] ^ m_bin_sender[j];
+          }
       }
 
       // r_{c ^ 0} ^ M_{c ^ 0}
       // r_{c ^ 1} ^ M_{c ^ 1}
-      for (size_t j = 0; j < 32; j++) {
-          rc_Mc_xor_result[j] = selected_sender_r[j] ^ selected_sender_m[j];
-          other_rc_Mc_xor_result[j] = other_selected_sender_r[j] ^ other_selected_sender_m[j];
-      }
 
       // Receiver
       int c_xor_b_result;
-      uint8_t rb_Mb_xor_result[32], m_bin_receiver[32], m1_bin_receiver[32];
+      uint8_t rb_Mb_xor_result[32], m2_bin_receiver[32];
 
-      uint8_t tmp_receiver[4 + 32];
-      memcpy(tmp_receiver, &c, sizeof(c));
-      memcpy(&tmp_receiver[4], r_sender, 32);
-      blake3(r_pipe_c_receiver_hash, tmp_receiver, 32 + 4);
+      int c_receiver;
+      memcpy(&c_receiver, &c_sender, 4);
 
-      bool r_pipe_c_all_equal = true;
-      for (size_t j = 0; j < 32; j++) {
-          r_pipe_c_all_equal &= (r_pipe_c_receiver_hash[j] == r_pipe_c_hash[j]);
-
-          m_bin_receiver[j] = 0;
-          m1_bin_receiver[j] = 0;
-      }
-      CU_ASSERT(r_pipe_c_all_equal);
-
-      BN_bn2bin(m, m_bin_receiver);
-      BN_bn2bin(m1, m1_bin_receiver);
+      memset(m2_bin_receiver, 0x00, 32);
+      BN_bn2bin(m2, m2_bin_receiver);
 
       // c ^ b
-      c_xor_b_result = c ^ b;
+      c_xor_b_result = c_receiver ^ b;
       // r_b ^ M_b
       if (b == 0) {
           for (size_t j = 0; j < 32; j++) {
-              rb_Mb_xor_result[j] = r0_receiver[j] ^ m_bin_receiver[j];
+              rb_Mb_xor_result[j] = r0_receiver[j] ^ m2_bin_receiver[j];
           }
       } else {
           for (size_t j = 0; j < 32; j++) {
-              rb_Mb_xor_result[j] = r1_receiver[j] ^ m1_bin_receiver[j];
+              rb_Mb_xor_result[j] = r1_receiver[j] ^ m2_bin_receiver[j];
           }
       }
 
       // Final Check
       bool m_all_equal = true;
-      for (size_t j = 0; j < 32; j++) {
-          m_all_equal &= (rb_Mb_xor_result[j] == rc_Mc_xor_result[j]);
+      if (c_xor_b_result == 0) {
+          for (size_t j = 0; j < 32; j++) {
+              m_all_equal &= (rb_Mb_xor_result[j] == rc_Mc_xor_result[j]);
+          }
+      } else {
+          for (size_t j = 0; j < 32; j++) {
+              m_all_equal &= (rb_Mb_xor_result[j] == other_rc_Mc_xor_result[j]);
+          }
       }
       CU_ASSERT(m_all_equal);
   }

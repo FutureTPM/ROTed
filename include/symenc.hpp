@@ -48,8 +48,7 @@ struct sym_enc_t
     memcpy(&plain1[0], &in[0], pbytes);
     memcpy(&plain1[pbytes], &r[0], rbytes);
     uint8_t tmp_iv[ivbytes];
-    nfl::fastrandombytes(tmp_iv, ivbytes);
-    memcpy(&out.iv[0], &tmp_iv[0], ivbytes);
+    memcpy(&tmp_iv[0], &out.iv[0], ivbytes);
     AES_KEY openssl_key;
     AES_set_encrypt_key(key, bbytes * 8, &openssl_key);
     AES_cbc_encrypt(plain1, out.buf, outbytes, &openssl_key, (unsigned char *)out.iv, AES_ENCRYPT);

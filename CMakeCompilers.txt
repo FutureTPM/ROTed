@@ -3,6 +3,7 @@ include(CheckCXXCompilerFlag)
 option(VECTOR_ENGINE "Vector Engine to be used: x86 => [AVX512|AVX2|SSE|SERIAL]; ARM => [NEON|SERIAL]" OFF)
 option(NTT_USE_NOISE_CACHE "Use a Noise cache => [ON|OFF]" OFF)
 option(OT_TEST "Test OTs (ON) or test ROTs (OFF)" OFF)
+option(OT_ROTTED_TEST "Test ROTTED OTs (ON) or test ROTs (OFF)" OFF)
 
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
     set (X86 TRUE)
@@ -57,6 +58,10 @@ endif()
 
 if (OT_TEST STREQUAL "ON")
     add_definitions(-DOT_TEST)
+endif()
+
+if (OT_ROTTED_TEST STREQUAL "ON")
+    add_definitions(-DOT_ROTTED_TEST)
 endif()
 
 # C++11 support

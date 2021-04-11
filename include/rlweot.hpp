@@ -87,11 +87,10 @@ struct alice_ot_t
     memcpy(&r_sid[0], &sid, sizeof(sid));
     nfl::fastrandombytes(&r_sid[sizeof(sid)], rbytes);
 
-    if (b == 1)
-      {
-	rom1(rom1_output, r_sid, rbytes + sizeof(uint32_t));
-	p0 = p0 - h;
-      }
+    if (b == 1) {
+        rom1(rom1_output, r_sid, rbytes + sizeof(uint32_t));
+        p0 = p0 - h;
+    }
   }
 
   bool msg2(uint8_t ch[rbytes],

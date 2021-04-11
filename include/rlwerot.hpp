@@ -146,8 +146,10 @@ struct alice_rot_t
 	  }
       }
 
-    rom_k_O<HASHSIZE> romFinalM_output(Mb);
-    romFinalM(romFinalM_output, Mb_sid, sizeof(Mb_sid));
+    //rom_k_O<HASHSIZE> romFinalM_output(Mb);
+    //romFinalM(romFinalM_output, Mb_sid, sizeof(Mb_sid));
+    static_assert(HASHSIZE == 32);
+    blake3(Mb, &Mb_sid[0], sizeof(Mb_sid));
     
     memcpy(bS0, S0, bbytes);
     memcpy(bS1, S1, bbytes);
@@ -302,10 +304,13 @@ struct bob_rot_t
 	  }
       }
     
-    rom_k_O<HASHSIZE> rommsg0_output(msg0);
-    rom_k_O<HASHSIZE> rommsg1_output(msg1);
-    romM(rommsg0_output, msg0_sid, sizeof(msg0_sid));
-    romM(rommsg1_output, msg1_sid, sizeof(msg1_sid));
+    // rom_k_O<HASHSIZE> rommsg0_output(msg0);
+    // rom_k_O<HASHSIZE> rommsg1_output(msg1);
+    // romM(rommsg0_output, msg0_sid, sizeof(msg0_sid));
+    // romM(rommsg1_output, msg1_sid, sizeof(msg1_sid));
+    static_assert(HASHSIZE == 32);
+    blake3(msg0, &msg0_sid[0], sizeof(msg0_sid));
+    blake3(msg1, &msg1_sid[0], sizeof(msg1_sid));
 
     return true;
   }

@@ -39,6 +39,7 @@ struct alice_rot_t
 
   using value_t = typename P::value_type;
   nfl::FastGaussianNoise<uint8_t, value_t, 2>* g_prng;
+  static_assert(HASHSIZE == 32); //since we are using Blake3
 
   rom1_t<P> rom1;
   rom_P_O<P> rom1_output;
@@ -80,11 +81,14 @@ struct alice_rot_t
     nfl::fastrandombytes(&S0[0], sizeof(S0));
     nfl::fastrandombytes(&S1[0], sizeof(S1));
 
-    rom_k_O<HASHSIZE> romS0_output(hS0);
-    rom_k_O<HASHSIZE> romS1_output(hS1);
+    // rom_k_O<HASHSIZE> romS0_output(hS0);
+    // rom_k_O<HASHSIZE> romS1_output(hS1);
 
-    romSi(romS0_output, S0, sizeof(S0));
-    romSi(romS1_output, S1, sizeof(S1));
+    // romSi(romS0_output, S0, sizeof(S0));
+    // romSi(romS1_output, S1, sizeof(S1));
+
+    blake3(&hS0[0], &S0[0], sizeof(S0));
+    blake3(&hS1[0], &S1[0], sizeof(S1));
 
     if (b1 == 1)
       {
@@ -148,7 +152,6 @@ struct alice_rot_t
 
     //rom_k_O<HASHSIZE> romFinalM_output(Mb);
     //romFinalM(romFinalM_output, Mb_sid, sizeof(Mb_sid));
-    static_assert(HASHSIZE == 32);
     blake3(Mb, &Mb_sid[0], sizeof(Mb_sid));
     
     memcpy(bS0, S0, bbytes);
@@ -160,6 +163,8 @@ struct alice_rot_t
 template<typename P, size_t rbytes, size_t bbytes, size_t HASHSIZE>
 struct bob_rot_t
 {
+  static_assert(HASHSIZE == 32); //since we are using BLAKE
+  
   P sS, eS, eS1;
   P h;
   P p1;
@@ -265,8 +270,10 @@ struct bob_rot_t
 	    uint32_t sid,
 	    const uint8_t S0[bbytes], const uint8_t S1[bbytes])
   {
-    romM(romhS0b_output, S0, bbytes);
-    romM(romhS1b_output, S1, bbytes);
+    // romM(romhS0b_output, S0, bbytes);
+    // romM(romhS1b_output, S1, bbytes);
+    blake3(&hS0b[0], &S0[0], bbytes);
+    blake3(&hS1b[0], &S1[0], bbytes);
 
     if ((memcmp(hS0b, hS0, bbytes) != 0) ||
 	(memcmp(hS1b, hS1, bbytes) != 0))
@@ -308,7 +315,6 @@ struct bob_rot_t
     // rom_k_O<HASHSIZE> rommsg1_output(msg1);
     // romM(rommsg0_output, msg0_sid, sizeof(msg0_sid));
     // romM(rommsg1_output, msg1_sid, sizeof(msg1_sid));
-    static_assert(HASHSIZE == 32);
     blake3(msg0, &msg0_sid[0], sizeof(msg0_sid));
     blake3(msg1, &msg1_sid[0], sizeof(msg1_sid));
 

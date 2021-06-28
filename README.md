@@ -53,6 +53,7 @@ We present the install commands for some Linux distributions:
 sudo apt-get install numactl
 cargo install hyperfine
 ```
+
     * Not using `rustup`
 ```bash
 sudo apt-get install cargo rustc numactl

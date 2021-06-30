@@ -191,7 +191,7 @@ order to support the new backends.
 ROTs and OTs. The OT implementation is in [rlweot.hpp](include/rlweot.hpp), and
 the ROT implementation is in [rlwerot.hpp](include/rlwerot.hpp). The random
 oracle implementations are in [roms.hpp](include/roms.hpp). All
-implementations are templated in order to facilitate easy parameters
+implementations are templated in order to facilitate parameters
 modifications without sacrificing performance.
 
 `rel_art` contains the implementation for the PVW08 proposal. The

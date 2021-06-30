@@ -23,6 +23,11 @@ long long cpucycles_amd64cpuinfo(void)
   __asm__ __volatile__ ("mrc p15, 0, %0, c9, c13, 0" : "=r"(cc));
   return cc;
 }
+#elif defined __aarch64__
+long long cpucycles_amd64cpuinfo(void)
+{
+    return 0;
+}
 #else
 #error Undetected arch
 #endif

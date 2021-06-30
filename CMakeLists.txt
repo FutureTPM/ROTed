@@ -10,7 +10,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 find_package(GMP REQUIRED)
 find_package(MPFR REQUIRED)
 find_package(CUNIT REQUIRED)
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED serialization)
 find_package(OpenSSL REQUIRED)
 
 #add_subdirectory(crypto_project)
@@ -20,7 +20,7 @@ add_subdirectory(BLAKE3/c)
 
 include_directories(include nfl/include
     # crypto_project/include
-    ${Boost_INCLUDE_DIR} BLAKE3/c ${OpenSSL_INCLUDE_DIR})
+    ${Boost_INCLUDE_DIR} BLAKE3/c ${OPENSSL_INCLUDE_DIR} ${CUNIT_INCLUDE_DIR})
 
 file(GLOB RLWEOT_HDRS_0 include/*.hpp include/cpucycles.h)
 

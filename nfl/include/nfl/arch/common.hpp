@@ -3,7 +3,7 @@
 
 #if defined __x86_64__ || defined __i386__
 #include <immintrin.h>
-#elif defined __arm__
+#elif defined __arm__ || defined __aarch64__
 #include <arm_neon.h>
 #else
 #error Undetected arch

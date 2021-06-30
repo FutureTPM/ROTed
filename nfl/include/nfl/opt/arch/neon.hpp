@@ -69,10 +69,69 @@ namespace ops {
 static inline uint32x4_t shuffle_epi32(uint32x4_t const v, uint8_t const imm)
 {
     uint32x4_t ret;
+#ifdef __aarch64__
+    switch ((imm) & 0x3) {
+      case 0:
+          ret = vmovq_n_u32(vgetq_lane_u32(v, 0));
+          break;
+      case 1:
+          ret = vmovq_n_u32(vgetq_lane_u32(v, 1));
+          break;
+      case 2:
+          ret = vmovq_n_u32(vgetq_lane_u32(v, 2));
+          break;
+      case 3:
+          ret = vmovq_n_u32(vgetq_lane_u32(v, 3));
+          break;
+    }
+    switch (((imm) >> 2) & 0x3) {
+      case 0:
+          ret = vsetq_lane_u32(vgetq_lane_u32(v, 0), ret, 1);
+          break;
+      case 1:
+          ret = vsetq_lane_u32(vgetq_lane_u32(v, 1), ret, 1);
+          break;
+      case 2:
+          ret = vsetq_lane_u32(vgetq_lane_u32(v, 2), ret, 1);
+          break;
+      case 3:
+          ret = vsetq_lane_u32(vgetq_lane_u32(v, 3), ret, 1);
+          break;
+    }
+    switch (((imm) >> 4) & 0x3) {
+      case 0:
+          ret = vsetq_lane_u32(vgetq_lane_u32(v, 0), ret, 2);
+          break;
+      case 1:
+          ret = vsetq_lane_u32(vgetq_lane_u32(v, 1), ret, 2);
+          break;
+      case 2:
+          ret = vsetq_lane_u32(vgetq_lane_u32(v, 2), ret, 2);
+          break;
+      case 3:
+          ret = vsetq_lane_u32(vgetq_lane_u32(v, 3), ret, 2);
+          break;
+    }
+    switch (((imm) >> 6) & 0x3) {
+      case 0:
+           ret = vsetq_lane_u32(vgetq_lane_u32(v, 0), ret, 3);
+           break;
+       case 1:
+           ret = vsetq_lane_u32(vgetq_lane_u32(v, 1), ret, 3);
+           break;
+       case 2:
+           ret = vsetq_lane_u32(vgetq_lane_u32(v, 2), ret, 3);
+           break;
+       case 3:
+           ret = vsetq_lane_u32(vgetq_lane_u32(v, 3), ret, 3);
+           break;
+     }
+#else
     ret = vmovq_n_u32(vgetq_lane_u32(v, (imm) & 0x3));
     ret = vsetq_lane_u32(vgetq_lane_u32(v, ((imm) >> 2) & 0x3), ret, 1);
     ret = vsetq_lane_u32(vgetq_lane_u32(v, ((imm) >> 4) & 0x3), ret, 2);
     ret = vsetq_lane_u32(vgetq_lane_u32(v, ((imm) >> 6) & 0x3), ret, 3);
+#endif
     return ret;
 }
 

@@ -117,7 +117,7 @@ fi
 writeMessage "Running Benchmarks (this may take a while)"
 if [ "$ARCH" == "x86_64" ]; then
     cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './avx2_rot' './serial_rot' './sse_rot'  './avx2_ot' './serial_ot' './sse_ot' './art_ot' './art_ot_rotted' './avx2_ot_rotted' './serial_ot_rotted' './sse_ot_rotted' && cd ..
-elif [ "$ARCH" == "Darwin" ]; then
+elif [ "$OS" == "Darwin" ]; then
     cd bin && hyperfine --warmup 100 -m 1000 './neon_rot' './serial_rot' './neon_ot' './serial_ot' './art_ot' './neon_ot_rotted' './serial_ot_rotted' './art_ot_rotted' && cd ..
 else
     cd bin && numactl -C 0 -- hyperfine --warmup 100 -m 1000 './neon_rot' './serial_rot' './neon_ot' './serial_ot' './art_ot' './neon_ot_rotted' './serial_ot_rotted' './art_ot_rotted' && cd ..

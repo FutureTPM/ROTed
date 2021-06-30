@@ -1,0 +1,14 @@
+diff --git a/rel_art/src/main.cpp b/rel_art/src/main.cpp
+index 718e476..42370a2 100644
+--- a/rel_art/src/main.cpp
++++ b/rel_art/src/main.cpp
+@@ -49,8 +49,8 @@ void ddhot_test()
+       //long long start = cpucycles_amd64cpuinfo();
+       alice_ot_t alice(crs);
+       bob_ot_t bob(crs);
+-      BN_rand(m, 32, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
+-      BN_rand(m1, 32, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
++      BN_rand(m, 32, -1, 0);
++      BN_rand(m1, 32, -1, 0);
+
+       b = bit();

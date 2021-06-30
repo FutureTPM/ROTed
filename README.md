@@ -33,6 +33,19 @@ We present the install commands for some Linux distributions:
 sudo apt-get install cmake libgmp-dev libmpfr-dev libcunit1-dev libboost-all-dev openssl libssl-dev
 ```
 
+* Arch Linux
+```bash
+sudo pacman -Sy cmake gmp mpfr cunit boost boost-libs openssl
+```
+
+* CentOS 8
+```bash
+sudo dnf install cmake gmp gmp-devel mpfr mpfr-devel CUnit CUnit-devel boost boost-devel openssl openssl-devel
+```
+
+If your distribution is not listed here make sure you are using the same
+dependencies through [pkgs](https://pkgs.org/).
+
 ### Optional
 
 `rustup` is a toolchain installer for the Rust programming language. Instead of
@@ -58,6 +71,32 @@ cargo install hyperfine
 ```bash
 sudo apt-get install cargo rustc numactl
 cargo install hyperfine
+```
+
+* Arch Linux
+```bash
+sudo pacman -Sy numactl hyperfine
+```
+
+* CentOS 8
+    * Using `rustup`
+```bash
+sudo dnf install numactl
+cargo install hyperfine
+```
+
+    * Not using `rustup`
+```bash
+sudo dnf install numactl cargo rustc
+cargo install hyperfine
+```
+
+`rustup` will optionally modify your path variable in order to run any
+installed binaries. If you changed the `rustup` defaults or did not use
+`rustup` to install cargo and rustc, make sure that `$HOME/.cargo/bin` is in
+your path. To do so, you can run in bash:
+```bash
+export PATH=$HOME/.cargo/bin:$PATH
 ```
 
 ## Getting Started
@@ -97,6 +136,15 @@ will build the standard `ROT` versions. In the case both `OT_TEST` or
 
 Variations to build the code on other systems should be available by consulting
 the manpages of `cmake` and changing the `-G` flag accordingly.
+
+Running the compiled (R)OT:
+```bash
+./_builds/main
+```
+To run the PVW08 implementation:
+```bash
+./_builds/rel_art/main_rel
+```
 
 ## Docker
 
@@ -162,7 +210,7 @@ Each algorithm was executed on multiple machines:
 * Apple Mac Mini Late 2020 (Apple M1 @ 3.2GHz)
 * A machine with an Intel i9-10980XE @ 3GHz
 
-The first step to replicate the results is to fix the clock frequency of all
+The first step to replicate the results is to set the clock frequency of all
 processors to the described values. There are two scripts in `utils/` which
 allows the user to read and set the current operating clock frequency.
 The user should run `./utils/watch_cpufreq.sh` to get the available clock
@@ -184,4 +232,29 @@ The user should not try to replicate results using docker or other
 virtualization software. Doing so incurs extra performance penalties due to the
 virtualization layer.
 
+### Note on macOS
+
+macOS does not support `numactl` and does not allow to set the clock frequency.
+Since we are unable to pin a process to a single core and the clock frequency
+varies, the results for this device are pessimistic. You should expect
+large variations when benchmarking using this environment.
+
+The benchmarking environment in the Mac Mini should improve once support
+for this architecture is merged into the [Linux](https://asahilinux.org/)
+kernel.
+
+# OpenSSL Compilation Error
+
+If you are using an old version of OpenSSL, you will get a compilation error
+when compiling the PVW08 (`rel_art`) implementation.
+
+You can apply the following [patch](utils/openssl_old.patch) in order to fix
+it.
+```
+git apply utils/openssl_old.patch
+```
+
 ## License
+
+The code in this repository can be used under the MIT license. For more
+information, please refer to the [license](LICENSE) file.

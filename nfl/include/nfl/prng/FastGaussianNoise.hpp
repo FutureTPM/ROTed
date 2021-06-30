@@ -3978,6 +3978,8 @@ extern __inline__ uint64_t rdtsc(void)
   }
   __asm__ __volatile__ ("mrc p15, 0, %0, c9, c13, 0" : "=r"(cc));
   return cc;
+#elif defined __aarch64__
+  return 0;
 #endif
 }
 

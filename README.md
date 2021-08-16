@@ -252,13 +252,13 @@ folder, binaries are described in the format
 * `sse_ot_rotted`: _[BDGM19] ROTted (SSE4)_ => Optimized BDGM19 ROTed implementation for SSE4;
 * `sse_rot`: _RLWE ROT (SSE4)_ => Proposed ROT implementation for SSE4;
 
-On ARM the following files are created:
+On ARM, the following files are created:
 
 * `art_ot`: _SotA [PVW08]_ => The PVW08 implementation;
 * `art_ot_rotted`: _SotA [PVW08] ROTted_ => The PVW08 implementation, ROTed;
-* `neon_ot`: _RLWE OT (AVX2)_ => Optimized BDGM19 implementation for NEON;
-* `neon_ot_rotted`: _[BDGM19] ROTted (AVX2)_ => Optimized BDGM19 ROTed implementation for NEON;
-* `neon_rot`: _RLWE ROT (AVX2)_ => Proposed ROT implementation for NEON;
+* `neon_ot`: _RLWE OT (NEON)_ => Optimized BDGM19 implementation for NEON;
+* `neon_ot_rotted`: _[BDGM19] ROTted (NEON)_ => Optimized BDGM19 ROTed implementation for NEON;
+* `neon_rot`: _RLWE ROT (NEON)_ => Proposed ROT implementation for NEON;
 * `serial_ot`: _RLWE OT (Serial)_ => Optimized BDGM19 implementation with no vector instructions;
 * `serial_ot_rotted`: _[BDGM19] ROTted (Serial)_ => Optimized BDGM19 ROTed implementation with no vector instructions
 * `serial_rot`: _[BDGM19] RLWE ROT (Serial)_ => Proposed ROT implementation with no vector instructions

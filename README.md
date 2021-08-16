@@ -111,7 +111,7 @@ Our implementations depend on [BLAKE3](https://github.com/BLAKE3-team/BLAKE3).
 The `init-repo.sh` will initialize this dependency and connect it to our build
 system.
 
-Using cmake one can build the code using:
+Using cmake, one can build the code using:
 
 ```bash
   cmake -DCMAKE_BUILD_TYPE=Release -H. -B_builds -G "Unix Makefiles"
@@ -129,10 +129,10 @@ and default to it.
 numbers. Default is off.
 * `-DOT_TEST=[ON | OFF]` Compile the OT versions of all algorithms.
 Default is off.
-* `-DOT_ROTTED_TEST=[ON | OFF]` Compile the ROTted versions of all algorithms.
+* `-DOT_ROTTED_TEST=[ON | OFF]` Compile the ROTed versions of all algorithms.
 Default is off. If neither `OT_TEST` or `OT_ROTTED_TEST` are set to ON, `cmake`
 will build the standard `ROT` versions. In the case both `OT_TEST` or
-`OT_ROTTED_TEST` are set to ON, `cmake` will build the ROTted versions.
+`OT_ROTTED_TEST` are set to ON, `cmake` will build the ROTed versions.
 
 Variations to build the code on other systems should be available by consulting
 the manpages of `cmake` and changing the `-G` flag accordingly.
@@ -212,7 +212,7 @@ Each algorithm was executed on multiple machines:
 
 The first step to replicate the results is to set the clock frequency of all
 processors to the described values. There are two scripts in `utils/` which
-allows the user to read and set the current operating clock frequency.
+allow the user to read and set the current operating clock frequency.
 The user should run `./utils/watch_cpufreq.sh` to get the available clock
 frequencies and `./utils/set_cpufreq.sh` to set one.
 
@@ -231,6 +231,108 @@ the specified protocol.
 The user should not try to replicate results using docker or other
 virtualization software. Doing so incurs extra performance penalties due to the
 virtualization layer.
+
+### Details on `benchmark.sh` and Paper Results
+
+Running `benchmark.sh` creates a folder, `bin`, with all benchmark binaries for
+each configuration and a given architecture. For example, in an x86 system (w/
+SSE4 and AVX2 support), the following binaries were created in the `bin`
+folder, binaries are described in the format
+`Binary name: Name in Paper => Description`:
+
+* `art_ot`: _SotA [PVW08]_ => The PVW08 implementation;
+* `art_ot_rotted`: _SotA [PVW08] ROTted_ => The PVW08 implementation, ROTed;
+* `avx2_ot`: _RLWE OT (AVX2)_ => Optimized BDGM19 implementation for AVX2;
+* `avx2_ot_rotted`: _[BDGM19] ROTted (AVX2)_ => Optimized BDGM19 ROTed implementation for AVX2;
+* `avx2_rot`: _RLWE ROT (AVX2)_ => Proposed ROT implementation for AVX2;
+* `serial_ot`: _RLWE OT (Serial)_ => Optimized BDGM19 implementation with no vector instructions;
+* `serial_ot_rotted`: _[BDGM19] ROTted (Serial)_ => Optimized BDGM19 ROTed implementation with no vector instructions
+* `serial_rot`: _[BDGM19] RLWE ROT (Serial)_ => Proposed ROT implementation with no vector instructions
+* `sse_ot`: _RLWE OT (SSE4)_ => Optimized BDGM19 implementation for SSE4;
+* `sse_ot_rotted`: _[BDGM19] ROTted (SSE4)_ => Optimized BDGM19 ROTed implementation for SSE4;
+* `sse_rot`: _RLWE ROT (SSE4)_ => Proposed ROT implementation for SSE4;
+
+On ARM the following files are created:
+
+* `art_ot`: _SotA [PVW08]_ => The PVW08 implementation;
+* `art_ot_rotted`: _SotA [PVW08] ROTted_ => The PVW08 implementation, ROTed;
+* `neon_ot`: _RLWE OT (AVX2)_ => Optimized BDGM19 implementation for NEON;
+* `neon_ot_rotted`: _[BDGM19] ROTted (AVX2)_ => Optimized BDGM19 ROTed implementation for NEON;
+* `neon_rot`: _RLWE ROT (AVX2)_ => Proposed ROT implementation for NEON;
+* `serial_ot`: _RLWE OT (Serial)_ => Optimized BDGM19 implementation with no vector instructions;
+* `serial_ot_rotted`: _[BDGM19] ROTted (Serial)_ => Optimized BDGM19 ROTed implementation with no vector instructions
+* `serial_rot`: _[BDGM19] RLWE ROT (Serial)_ => Proposed ROT implementation with no vector instructions
+
+An example output of `benchmark.sh` is
+
+```
+Benchmark #1: ./avx2_rot
+  Time (mean ± σ):      34.4 ms ±   1.1 ms    [User: 33.5 ms, System: 0.9 ms]
+  Range (min … max):    33.9 ms …  40.8 ms    1000 runs
+
+Benchmark #2: ./serial_rot
+  Time (mean ± σ):      41.0 ms ±   0.7 ms    [User: 40.3 ms, System: 0.8 ms]
+  Range (min … max):    40.7 ms …  53.8 ms    1000 runs
+
+Benchmark #3: ./sse_rot
+  Time (mean ± σ):      36.1 ms ±   0.1 ms    [User: 35.3 ms, System: 0.8 ms]
+  Range (min … max):    36.0 ms …  36.8 ms    1000 runs
+
+Benchmark #4: ./avx2_ot
+  Time (mean ± σ):      35.6 ms ±   0.4 ms    [User: 34.8 ms, System: 0.9 ms]
+  Range (min … max):    35.3 ms …  40.3 ms    1000 runs
+
+Benchmark #5: ./serial_ot
+  Time (mean ± σ):      42.7 ms ±   1.2 ms    [User: 42.1 ms, System: 0.7 ms]
+  Range (min … max):    42.4 ms …  56.7 ms    1000 runs
+
+Benchmark #6: ./sse_ot
+  Time (mean ± σ):      37.7 ms ±   0.5 ms    [User: 36.9 ms, System: 0.9 ms]
+  Range (min … max):    37.5 ms …  48.7 ms    1000 runs
+
+Benchmark #7: ./art_ot
+  Time (mean ± σ):     491.3 ms ±   8.0 ms    [User: 489.4 ms, System: 1.4 ms]
+  Range (min … max):   483.2 ms … 574.4 ms    1000 runs
+
+Benchmark #8: ./art_ot_rotted
+  Time (mean ± σ):     491.3 ms ±  10.4 ms    [User: 489.3 ms, System: 1.5 ms]
+  Range (min … max):   485.0 ms … 651.3 ms    1000 runs
+
+Benchmark #9: ./avx2_ot_rotted
+  Time (mean ± σ):      36.2 ms ±   0.5 ms    [User: 35.4 ms, System: 0.9 ms]
+  Range (min … max):    35.9 ms …  44.4 ms    1000 runs
+
+Benchmark #10: ./serial_ot_rotted
+  Time (mean ± σ):      43.4 ms ±   0.6 ms    [User: 42.7 ms, System: 0.7 ms]
+  Range (min … max):    43.1 ms …  55.3 ms    1000 runs
+
+Benchmark #11: ./sse_ot_rotted
+  Time (mean ± σ):      38.4 ms ±   0.2 ms    [User: 37.6 ms, System: 0.9 ms]
+  Range (min … max):    38.1 ms …  41.9 ms    1000 runs
+
+Summary
+  './avx2_rot' ran
+    1.04 ± 0.03 times faster than './avx2_ot'
+    1.05 ± 0.03 times faster than './sse_rot'
+    1.05 ± 0.04 times faster than './avx2_ot_rotted'
+    1.10 ± 0.04 times faster than './sse_ot'
+    1.12 ± 0.04 times faster than './sse_ot_rotted'
+    1.19 ± 0.04 times faster than './serial_rot'
+    1.24 ± 0.05 times faster than './serial_ot'
+    1.26 ± 0.04 times faster than './serial_ot_rotted'
+   14.29 ± 0.54 times faster than './art_ot_rotted'
+   14.29 ± 0.51 times faster than './art_ot'
+```
+
+With these results and the (R)OTs/s equation from the previous subsection
+((R)OTs/s = (1k \* (1/FREQ)) / t) the user can fill out Tables 2 and 3 of the
+paper. Once the results in Table 2 and 3 are available, Figures 3, 4, 5, 6 and
+7 can be generated by choosing the baseline and computing the speedups.
+
+Memory results are obtained by running each binary using massif. The command is
+```
+valgrind --tool=massif ./BIN_NAME_HERE
+```
 
 ### Note on macOS
 

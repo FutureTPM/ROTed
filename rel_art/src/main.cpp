@@ -98,7 +98,7 @@ void ddhrot_test()
   uint8_t r0_receiver[32], r1_receiver[32], r_sender[32];
   uint8_t r0_receiver_hash[32], r1_receiver_hash[32], c_pipe_r_sender_hash[32], c_pipe_r_receiver_hash[32], c_pipe_r_receiver_hash_generated[32];
   uint8_t r0_sender_hash[32], r1_sender_hash[32];
-  BIGNUM *m, *m1, *m2;
+  BIGNUM *m, *m1, *m2, *check;
 
   boost::mt19937 rng;
   boost::uniform_int<> dist(0,1);
@@ -118,6 +118,7 @@ void ddhrot_test()
   m = BN_new();
   m1 = BN_new();
   m2 = BN_new();
+  check = BN_new();
 
   for (size_t i = 0; i < numtests; i++) {
       // Sender
@@ -161,9 +162,9 @@ void ddhrot_test()
       } else {
           tmp = m1;
       }
-      BN_sub(m2, m2, tmp);
+      BN_sub(check, m2, tmp);
 
-      CU_ASSERT(BN_is_zero(m2));
+      CU_ASSERT(BN_is_zero(check));
       //long long end = cpucycles_amd64cpuinfo();
       //printf("Clock cycles elapsed: %lld\n", end - start);
       /*
@@ -181,8 +182,8 @@ void ddhrot_test()
       memcpy(r0_sender, r0_receiver, 32);
       memcpy(r1_sender, r1_receiver, 32);
 
-      uint8_t rc_Mc_xor_result[32], other_rc_Mc_xor_result[32], m_bin_sender[32], m1_bin_sender[32];
-      uint8_t *selected_sender_r, *selected_sender_m, *other_selected_sender_r, *other_selected_sender_m;
+      uint8_t rc_Mc_xor_result[32], other_rc_Mc_xor_result[32];
+      uint8_t m_bin_sender[32], m1_bin_sender[32];
 
       blake3(r0_sender_hash, r0_sender, 32);
       blake3(r1_sender_hash, r1_sender, 32);
@@ -202,7 +203,7 @@ void ddhrot_test()
       BN_bn2bin(m, m_bin_sender);
       BN_bn2bin(m1, m1_bin_sender);
 
-      if ((c_sender ^ 0) == 0) {
+      if (c_sender == 0) {
           for (size_t j = 0; j < 32; j++) {
               rc_Mc_xor_result[j] = r0_sender[j] ^ m_bin_sender[j];
               other_rc_Mc_xor_result[j] = r1_sender[j] ^ m1_bin_sender[j];
@@ -263,6 +264,7 @@ void ddhrot_test()
   BN_free(m);
   BN_free(m1);
   BN_free(m2);
+  BN_free(check);
 }
 
 void ddhcry_test()

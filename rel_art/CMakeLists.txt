@@ -7,7 +7,7 @@ find_package(CUNIT REQUIRED)
 
 include_directories(include ../BLAKE3/c ${OPENSSL_INCLUDE_DIR} ${CUNIT_INCLUDE_DIR})
 
-file(GLOB RELART_HDRS_0 include/*.hpp include/cpucycles.h)
+file(GLOB RELART_HDRS_0 include/*.hpp)
 
 install(FILES ${RELART_HDRS_0} DESTINATION include)
 

@@ -22,7 +22,7 @@ include_directories(include nfl/include
     # crypto_project/include
     ${Boost_INCLUDE_DIR} BLAKE3/c ${OPENSSL_INCLUDE_DIR} ${CUNIT_INCLUDE_DIR})
 
-file(GLOB RLWEOT_HDRS_0 include/*.hpp include/cpucycles.h)
+file(GLOB RLWEOT_HDRS_0 include/*.hpp)
 
 install(FILES ${RLWEOT_HDRS_0} DESTINATION include)
 

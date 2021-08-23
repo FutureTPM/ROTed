@@ -7,10 +7,7 @@
 #include <algorithm>
 #include "comm.hpp"
 #include "comm_rot.hpp"
-// #include <boost/archive/text_oarchive.hpp>
-// #include <boost/archive/text_iarchive.hpp>
 #include <fstream>
-#include "cpucycles.h"
 
 #ifndef M_PI
 #define M_PI           3.14159265358979323846

@@ -6,7 +6,6 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
-#include "cpucycles.h"
 #include "blake3.h"
 
 void blake3(uint8_t *out, const uint8_t *in, size_t len)

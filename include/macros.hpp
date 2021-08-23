@@ -1,6 +1,5 @@
 #ifndef __MACROS_HPP__
 #define __MACROS_HPP__
-//#include "aes.h"
 #include <openssl/aes.h>
 
 #define CEILING(x,y) (((x) + (y) - 1) / (y))

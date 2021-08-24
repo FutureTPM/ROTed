@@ -1,24 +1,24 @@
 #!/bin/bash
+currentDir=$( dirname "$( command -v "$0" )" )
+scriptsCommonUtilities="$currentDir/../thirdparty/scripts-common/utilities.sh"
+[ ! -f "$scriptsCommonUtilities" ] && echo -e "ERROR: scripts-common utilities not found, you must initialize the repository before running this script:\n./init-repo.sh" >&2 && exit 1
+# shellcheck disable=1090
+. "$scriptsCommonUtilities"
+
+if isRootUser; then
+    errorMessage 'Please do not execute this script as sudo. You will be prompted sudo when needed.'
+fi
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    echo "./restore_cpufreq.sh PATH_TO_GOVERNOR"
+    writeMessage "./restore_cpufreq.sh PATH_TO_GOVERNOR"
     exit 1
 fi
 
-if [[ $(id -u) == 0 ]]; then
-    echo 'Please do not execute this script as sudo. You will be prompted sudo when needed.'
-    exit 1
-fi
-
-if ! which git > /dev/null; then
-    echo "git command not found. Is it installed?"
-    echo "Exiting..."
-    exit 1
-fi
+checkBin git || errorMessage "This tool requires git. Install it please, and then run this tool again."
 
 if [ ! -d .git ]; then
     if ! git rev-parse > /dev/null 2>&1; then
-        echo "Couldn't find a git repo. Initializing..."
+        writeMessage "Couldn't find a git repo. Initializing..."
         git init
     fi
 fi
@@ -33,14 +33,13 @@ RESTORE_FILE="$BACKUP_FOLDER"/governors
 if [ $# -ne 0 ]; then
     RESTORE_FILE="$1"
 else
-    echo "No arguments supplied."
+    writeMessage "No arguments supplied."
 fi
 
-echo "Using $RESTORE_FILE as a restore point"
+writeMessage "Using $RESTORE_FILE as a restore point"
 
 if [ ! -f "$RESTORE_FILE" ]; then
-    echo "$RESTORE_FILE does not exist. Exiting..."
-    exit 1
+    errorMessage "$RESTORE_FILE does not exist. Exiting..."
 fi
 
 for i in $(seq 0 $NUM_CPUS)
@@ -48,4 +47,4 @@ do
     head -n $((i + 1)) "$RESTORE_FILE" | sudo tee /sys/devices/system/cpu/cpu"$i"/cpufreq/scaling_governor
 done
 
-echo "Done!"
+writeMessage "Done!"

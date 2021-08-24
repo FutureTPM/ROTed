@@ -14,13 +14,13 @@ find_package(Boost REQUIRED serialization)
 find_package(OpenSSL REQUIRED)
 
 #add_subdirectory(crypto_project)
-add_subdirectory(nfl)
+add_subdirectory(thirdparty/nfl)
 add_subdirectory(rel_art)
-add_subdirectory(BLAKE3/c)
+add_subdirectory(thirdparty/BLAKE3/c)
 
-include_directories(include nfl/include
+include_directories(include thirdparty/nfl/include
     # crypto_project/include
-    ${Boost_INCLUDE_DIR} BLAKE3/c ${OPENSSL_INCLUDE_DIR} ${CUNIT_INCLUDE_DIR})
+    ${Boost_INCLUDE_DIR} thirdparty/BLAKE3/c ${OPENSSL_INCLUDE_DIR} ${CUNIT_INCLUDE_DIR})
 
 file(GLOB RLWEOT_HDRS_0 include/*.hpp include/cpucycles.h)
 

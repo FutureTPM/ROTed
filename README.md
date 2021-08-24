@@ -176,6 +176,13 @@ By default all programs run through CUnit to ensure that the protocols have
 the expected output. As such, the only output available
 will be CUnit's output, _i.e._, it will show if any assertions failed.
 
+## Folder Structure
+
+* `include`, `rel_art` and `src` contain our implementations.
+* `thirdparty` contains third-party libraries which are needed to build the
+project.
+* `util` contains utilities scripts to ease certain tasks
+
 ## Code Overview
 
 **If you want to reuse our code you should read this section.**

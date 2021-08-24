@@ -181,7 +181,7 @@ will be CUnit's output, _i.e._, it will show if any assertions failed.
 * `include`, `rel_art` and `src` contain our implementations.
 * `thirdparty` contains third-party libraries which are needed to build the
 project.
-* `util` contains utilities scripts to ease certain tasks
+* `utils` contains utilities scripts to ease certain tasks
 
 ## Code Overview
 
@@ -230,7 +230,7 @@ frequencies and `./utils/set_cpufreq.sh` to set one. By setting the
 clock frequency to a set value, by default, the "boost" frequency is
 disabled.
 
-We strongly encourage people to use the `benchmark.sh` script in order to
+We strongly encourage people to use the `utils/benchmark.sh` script in order to
 replicate the results. This script will build all configurations for the
 running architecture and execute all configurations using the benchmark
 tool, hyperfine. When executing hyperfine we pin the process to the first core.
@@ -243,12 +243,83 @@ the number of (R)OTs/s = (1k \* (1/FREQ)) / t, where t is the time taken to run
 the specified protocol. After benchmarking, the user can reset their
 CPU frequency configurations using `./utils/restore_cpufreq.sh`.
 
-_Do not run `./utils/{restore_cpufreq, watch_cpufreq, set_cpufreq}.sh` as root.
-All scripts provide a `-h || --help` flag._
-
 The user should not try to replicate results using docker or other
 virtualization software. Doing so incurs extra performance penalties due to the
 virtualization layer.
+
+_Do not run `./utils/{restore_cpufreq, watch_cpufreq, set_cpufreq}.sh` as root.
+All scripts provide a `-h || --help` flag._
+
+### Fixing the Frequency on Intel Machines
+
+If you are getting an error when setting the frequencies and you are using
+an Intel machins, please go through these steps prior to opening an issue.
+A fair degree of caution should be taken when following these steps as the
+changes detailed will fundamentally alter how the CPU operates by setting
+a constant frequency. This may be undesireable if, for example,
+you are benchmarking on a laptop. Due to the multitude of configurations
+present on modern machines, we can't provide a specific step-by-step guide
+to everyone. This section only shows the basic steps of fixing the problem.
+
+By default, on Linux, Intel loads a proprietary driver, called `intel_pstate`,
+in order to control the frequencies of each core. This driver goes against
+what the scripts provided try to do. Instead the user should use the Linux
+driver `acpi-cpufreq`. To install the driver:
+
+* Debian/Ubuntu
+```bash
+sudo apt-get install acpi acpid acpi-support
+```
+
+* Arch Linux
+```bash
+sudo pacman -Sy acpi acpid
+```
+
+* CentOS 8
+```bash
+sudo dnf install acpid acpica-tools
+```
+
+Next we need to tell Linux not to load that driver. If you are using grub,
+edit `/etc/default/grub` and add `intel_pstate=disable` to
+`GRUB_CMDLINE_LINUX`. Prior to usage, the grub file needs to be regenerated.
+Unfortunately, this step is distro dependent. If you're on Debian/Ubuntu the
+command `update-grub` should be available. Otherwise we suggest googling
+the correct command for your particular distro.
+
+You may now reboot the machine and access the BIOS. In the BIOS enable the
+SpeedStep option. The name of the option will vary by motherboard manufacturer
+and, as such, we can't provide more specific details. Once again, if this
+specific option isn't available, you're going to have to google for an answer.
+
+After setting the option and reboot again, we can now check whether the
+correct driver is being used. For this we will use the utility `cpupower`.
+
+* Debian/Ubuntu
+```bash
+sudo apt-get install linux-tools-$(uname -r)
+```
+
+* Arch Linux
+```bash
+sudo pacman -Sy cpupower
+```
+
+* CentOS 8
+```bash
+sudo dnf install kernel-tools
+```
+
+Running `sudo cpupower frequency-info` should yield
+
+```
+analyzing CPU 0:
+  driver: acpi-cpufreq
+  <snip>
+```
+
+The scripts provided should now work.
 
 ### Details on `benchmark.sh` and Paper Results
 

@@ -219,7 +219,9 @@ The first step to replicate the results is to set the clock frequency of all
 processors to the described values. There are two scripts in `utils/` which
 allow the user to read and set the current operating clock frequency.
 The user should run `./utils/watch_cpufreq.sh` to get the available clock
-frequencies and `./utils/set_cpufreq.sh` to set one.
+frequencies and `./utils/set_cpufreq.sh` to set one. By setting the
+clock frequency to a set value, by default, the "boost" frequency is
+disabled.
 
 We strongly encourage people to use the `benchmark.sh` script in order to
 replicate the results. This script will build all configurations for the
@@ -231,7 +233,11 @@ incurred by scheduling the process to run in a different core. At the end of
 the script, hyperfine will output the speedups for each protocol configuration.
 Each protocol is executed 1k times. Given that the clock frequency is fixed,
 the number of (R)OTs/s = (1k \* (1/FREQ)) / t, where t is the time taken to run
-the specified protocol.
+the specified protocol. After benchmarking, the user can reset their
+CPU frequency configurations using `./utils/restore_cpufreq.sh`.
+
+_Do not run `./utils/{restore_cpufreq, watch_cpufreq, set_cpufreq}.sh` as root.
+All scripts provide a `-h || --help` flag._
 
 The user should not try to replicate results using docker or other
 virtualization software. Doing so incurs extra performance penalties due to the

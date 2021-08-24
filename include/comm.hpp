@@ -82,6 +82,10 @@ struct comm_msg_3_t
   uint32_t sid;
 };
 
+/** Fourth message of [BDGM19] OT
+
+@tparam cipher_t Symmetric-key encryption type
+*/
 template<typename cipher_t>
 struct comm_msg_4_t
 {

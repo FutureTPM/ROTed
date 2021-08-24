@@ -9,6 +9,14 @@
 #include "symenc.hpp"
 #include "macros.hpp"
 
+/** Converts binary polynomial into array. If size of the array is shorter
+    that polynomial degree, coefficients are hashed
+
+    @tparam P NFL Polynomial type
+    @tparam bbytes Size of the array
+    @param arr Returned array
+    @param P Input polynomial
+*/
 template<typename P, size_t bbytes>
 void convPtoArray(uint8_t arr[bbytes], const P &pol)
 {
@@ -39,16 +47,39 @@ void convPtoArray(uint8_t arr[bbytes], const P &pol)
     }
 }
 
+/** Implements Alice in the OT of [BDGM19]
+
+[BDGM19] Pedro Branco, Jintai Ding, Manuel Goulao, and Paulo Mateus.
+A frameworkfor universally composable oblivious transfer from one-round key-exchange.
+In Martin Albrecht, editor, Cryptography and Coding, pages 78–101, Cham,2019.
+Springer International Publishing
+
+@tparam P NFL Polynomial type
+@tparam rbytes Size of symmetric cipher key
+@tparam bbytes Size of output of random oracle 
+*/
 template<typename P, size_t rbytes, size_t bbytes>
 struct alice_ot_t
 {
+  /** Symmetric-key encryption engine */
   sym_enc_t<rbytes, rbytes, bbytes> sym_enc;
+  /** Type of symmetric key cipher */
   typedef typename sym_enc_t<rbytes, rbytes, bbytes>::cipher_t cipher_t;
 
+  /**@{*/
+  /** Used for RLWE sampling */
   P sR, eR, eR1;
+  /**@}*/
+  /** Polynomial output of random oracle such that p0 + p1 = h */
   P h;
+  /** Chosen OT channel */
   int b;
+  /**@{*/
+  /** Used for reconciliation with Sender's RLWE sample */
   P kR, skR;
+  /**@}*/
+  /**@{*/
+  /** Used to compute challenge response */
   uint8_t bskR[bbytes];
   uint8_t xb[rbytes];
   uint8_t bxb[2*rbytes + bbytes];
@@ -65,10 +96,15 @@ struct alice_ot_t
   uint8_t xb1[rbytes];
   uint8_t bskRb[bbytes];
   uint8_t yb[rbytes];
+  /**@}*/
 
+  /** Type of polynomial coefficients */
   using value_t = typename P::value_type;
+  /** Gaussian Noise Sampler */
   nfl::FastGaussianNoise<uint8_t, value_t, 2> *g_prng;
 
+  /**@{*/
+  /** Auxiliary structures for the implementation of Random Oracles */
   rom1_t<P> rom1;
   rom_P_O<P> rom1_output;
   rom2_t<bbytes> rom2;
@@ -77,7 +113,11 @@ struct alice_ot_t
   rom_k_O<2*rbytes + bbytes> rom3_output0;
   rom_k_O<2*rbytes + bbytes> rom3_output1;
   rom4_t<rbytes> rom4;
+  /**@}*/
 
+  /** Constructor of Alice
+
+      @param _g_prng Gaussian Noise sampler */
   alice_ot_t(nfl::FastGaussianNoise<uint8_t, value_t, 2> *_g_prng)
     : g_prng(_g_prng),
       rom1_output(h),
@@ -87,6 +127,13 @@ struct alice_ot_t
   {
   }
 
+  /** Implements first Alice message in [BDGM19]
+
+      @param p0 Return Alice RLWE sample for "channel 0"
+      @param r_sid Concatenation of Session ID and random value of size 'rbytes'
+      @param b1 Chosen OT channel
+      @param sid Session ID
+      @param m Common polynomial */
   void msg1(P &p0, uint8_t *r_sid, int b1, uint32_t sid, const P &m)
   {
     b = b1;
@@ -106,6 +153,18 @@ struct alice_ot_t
     }
   }
 
+  /** Implements second Alice message in [BDGM19]
+
+      @param ch Returned challenge response
+      @param sid Session ID
+      @param pS Sender's RLWE sample
+      @param signal0 Hint signal for key exchange in channel 0
+      @param signal1 Hint signal for key exchange in channel 1
+      @param a0 Part of the challenge
+      @param a1 Part of the challenge
+      @param u0 Part of the challenge
+      @param u1 Part of the challenge
+      @return Returns true when all checks are successful */
   bool msg2(uint8_t ch[rbytes],
 	    uint32_t sid, const P &pS, const P &signal0, const P &signal1,
 	    const cipher_t &a0, const cipher_t &a1,
@@ -268,6 +327,12 @@ struct alice_ot_t
     return true;
   }
 
+  /** Implements third Alice message in [BDGM19]
+
+      @param msgb Returned message
+      @param c0 Cipher for message in channel 0
+      @param c1 Cipher for message in channel 1
+  */
   void msg3(uint8_t msgb[rbytes], const cipher_t &c0, const cipher_t &c1)
   {
     uint8_t kb[bbytes];
@@ -280,18 +345,43 @@ struct alice_ot_t
       {
 	sym_enc.SDec(msgb, c1, kb);
       }
-
   }
 };
 
+/** Implements Bob in the OT of [BDGM19]
+
+[BDGM19] Pedro Branco, Jintai Ding, Manuel Goulao, and Paulo Mateus.
+A frameworkfor universally composable oblivious transfer from one-round key-exchange.
+In Martin Albrecht, editor, Cryptography and Coding, pages 78–101, Cham,2019.
+Springer International Publishing
+
+@tparam P NFL Polynomial type
+@tparam rbytes Size of symmetric cipher key
+@tparam bbytes Size of output of random oracle 
+*/
 template<typename P, size_t rbytes, size_t bbytes>
 struct bob_ot_t
 {
+  /**@{*/
+  /** Used for RLWE sampling */
   P sS, eS, eS1;
+  /**@}*/
+  /** Polynomial output of random oracle such that p0 + p1 = h */
   P h;
+  /** p1 corresponding to Alice's RLWE sample on channel 1 */
   P p1;
+  
+  /**@{*/
+  /** Used for RLWE key exchange in channel 0,1 */
   P kS0, kS1;
+  /**@}*/
+  /**@{*/
+  /** Hint signals */
   P signal0, signal1;
+  /**@}*/
+  
+  /**@{*/
+  /** Used to produce challenge */
   P skS0, skS1;
   uint8_t w0[rbytes], w1[rbytes];
   uint8_t z0[rbytes], z1[rbytes];
@@ -299,10 +389,15 @@ struct bob_ot_t
 
   uint8_t bw0[2*rbytes + bbytes], bw1[2*rbytes + bbytes];
   uint8_t ch[rbytes];
+  /**@}*/
 
+  /** Polynomial coefficient type */
   using value_t = typename P::value_type;
+  /** Gaussian Noise Sampler */
   nfl::FastGaussianNoise<uint8_t, value_t, 2> *g_prng;
 
+  /**@{*/
+  /** Auxiliary structures for the implementation of Random Oracles */
   rom1_t<P> rom1;
   rom_P_O<P> rom1_output;
   rom2_t<bbytes> rom2;
@@ -313,10 +408,16 @@ struct bob_ot_t
   rom_k_O<2*rbytes + bbytes> rom3_output1;
   rom4_t<rbytes> rom4;
   rom_k_O<rbytes> rom4_output;
+  /**@}*/
 
+  /** Symmetric-key encryption engine */
   sym_enc_t<rbytes, rbytes, bbytes> sym_enc;
+  /** Type of symmetric key cipher */
   typedef typename sym_enc_t<rbytes, rbytes, bbytes>::cipher_t cipher_t;
 
+  /** Constructor of Bob
+
+      @param _g_prng Gaussian Noise sampler */
   bob_ot_t(nfl::FastGaussianNoise<uint8_t, value_t, 2> *_g_prng)
     : g_prng(_g_prng),
       rom1_output(h),
@@ -328,6 +429,19 @@ struct bob_ot_t
   {
   }
 
+  /** Implements first Bob message in [BDGM19]
+
+      @param pS Bob's RLWE sample
+      @param signal0 Outputted hint signal for "channel 0"
+      @param signal1 Outputted hint signal for "channel 1"
+      @param u0 Part of challenge
+      @param u1 Part of challenge
+      @param a0 Part of challenge
+      @param a1 Part of challenge
+      @param sid Session ID
+      @param p0 Alice RLWE sample for "channel 0"
+      @param r_sid Concatenation of Session ID and random value of size 'rbytes'
+      @param m Common polynomial */
   void msg1(P &pS, P &signal0, P &signal1,
 	    uint8_t u0[2*rbytes + bbytes], uint8_t u1[2*rbytes + bbytes],
 	    cipher_t &a0, cipher_t &a1,
@@ -421,6 +535,15 @@ struct bob_ot_t
     rom4(rom4_output, rom4_input, sizeof(sid) + 4*rbytes);
   }
 
+  /** Implements second Bob message in [BDGM19]
+
+      @param c0 Returned cipher for message in channel 0
+      @param c1 Returned cipher for message in channel 1
+      @param ch1 Alice's challenge response
+      @param msg0 Message to be encrypted in channel 0
+      @param msg1 Message to be encrypted in channel 1
+      @return Returns true if challenge response has expected value
+  */
   bool msg2(cipher_t &c0, cipher_t &c1, const uint8_t ch1[rbytes],
 	    const uint8_t msg0[rbytes], const uint8_t msg1[rbytes])
   {

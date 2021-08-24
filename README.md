@@ -253,7 +253,7 @@ All scripts provide a `-h || --help` flag._
 ### Fixing the Frequency on Intel Machines
 
 If you are getting an error when setting the frequencies and you are using
-an Intel machins, please go through these steps prior to opening an issue.
+an Intel machines, please go through these steps prior to opening an issue.
 A fair degree of caution should be taken when following these steps as the
 changes detailed will fundamentally alter how the CPU operates by setting
 a constant frequency. This may be undesireable if, for example,

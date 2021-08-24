@@ -27,22 +27,23 @@ the versions described prior to opening an issue.
 * CMake3 (3.21.1-1, 3.17.5-1)
 * CUnit (2.1.3)
 * Boost (1.76.0-1, 1.53.0-28)
+* git (2.33.0-1, 1.8.3-23)
 
 We present the install commands for some Linux distributions:
 
 * Debian/Ubuntu
 ```bash
-sudo apt-get install cmake libgmp-dev libmpfr-dev libcunit1-dev libboost-all-dev openssl libssl-dev valgrind massif-visualizer
+sudo apt-get install git cmake libgmp-dev libmpfr-dev libcunit1-dev libboost-all-dev openssl libssl-dev valgrind massif-visualizer
 ```
 
 * Arch Linux
 ```bash
-sudo pacman -Sy cmake gmp mpfr cunit boost boost-libs openssl valgrind massif-visualizer
+sudo pacman -Sy git cmake gmp mpfr cunit boost boost-libs openssl valgrind massif-visualizer
 ```
 
 * CentOS 8
 ```bash
-sudo dnf install cmake gmp gmp-devel mpfr mpfr-devel CUnit CUnit-devel boost boost-devel openssl openssl-devel valgrind
+sudo dnf install git cmake gmp gmp-devel mpfr mpfr-devel CUnit CUnit-devel boost boost-devel openssl openssl-devel valgrind
 ```
 
 If your distribution is not listed here make sure you are using the same
@@ -108,6 +109,8 @@ After installing all required dependencies, initialize the repo by running:
 ```bash
 ./init-repo.sh
 ```
+
+(Make sure you execute `init-repo.sh` at the root of the artifact.)
 
 Our implementations depend on [BLAKE3](https://github.com/BLAKE3-team/BLAKE3).
 The `init-repo.sh` will initialize this dependency and connect it to our build

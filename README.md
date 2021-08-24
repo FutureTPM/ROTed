@@ -15,16 +15,18 @@ In order to run the software the user needs to install multiple
 dependencies. The names of the dependencies will vary by Linux distribution and
 operating system. Some dependencies are optional while others are required for
 the code to build. The optional dependencies are only needed if you intend to
-replicate our experiments.
+replicate our experiments. The dependencies versions used in testing are
+in parenthesis. If for some reason the build fails, please try to install
+the versions described prior to opening an issue.
 
 ### Required
 
-* GMP
-* MPFR
-* OpenSSL
-* CMake3
-* CUnit
-* Boost
+* GMP (6.2.1-1, 6.0.0-15)
+* MPFR (4.1.0.p13-1, 3.1.1-4)
+* OpenSSL (1.1.1.k-1, 1.0.2k-21)
+* CMake3 (3.21.1-1, 3.17.5-1)
+* CUnit (2.1.3)
+* Boost (1.76.0-1, 1.53.0-28)
 
 We present the install commands for some Linux distributions:
 
@@ -54,9 +56,9 @@ install `rustc` and `cargo` through the package manager in your Linux
 distribution. `hyperfine` is a benchmarking tool written in Rust.
 `numactl` is used to pin a process to a single core.
 
-* [rustup](https://rustup.rs/)
-* [hyperfine](https://github.com/sharkdp/hyperfine)
-* [numactl](https://github.com/numactl/numactl)
+* [rustup](https://rustup.rs/) (1.24.3)
+* [hyperfine](https://github.com/sharkdp/hyperfine) (1.11.0)
+* [numactl](https://github.com/numactl/numactl) (2.0.14-1, 2.0.12-5)
 
 We present the install commands for some Linux distributions:
 

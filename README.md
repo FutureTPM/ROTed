@@ -363,6 +363,13 @@ it.
 git apply utils/openssl_old.patch
 ```
 
+# Auxiliary Documentation
+
+The RLWE OT implementation, with reference [BDGM19] in the paper, is based
+on this [paper](https://eprint.iacr.org/2018/1155). The elliptic curve
+OT implementation, with reference [PVW08] in the paper, is based on this
+[paper](https://eprint.iacr.org/2007/348).
+
 ## License
 
 The code in this repository can be used under the MIT license. For more

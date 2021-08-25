@@ -10,6 +10,9 @@
 #include "macros.hpp"
 #include "rlweot.hpp"
 
+/** Outputs a random bit using NFL random byte generator
+
+    @return Random bit */
 int random_bit()
 {
   uint8_t b;
@@ -17,30 +20,49 @@ int random_bit()
   return b & 1;
 }
 
-//template<typename P, typename R, typename RO>
+/** Produces a hash of the inputted polynomial
+
+    @param pol Inputted polynomial
+    @param out Hash of the polynomial
+    @tparam P NFL Polynomial type
+*/
 template<typename P>
 void hash_polynomial(P &pol, uint8_t* out)
 {
-  // uint8_t buf[P::degree];
-  // constexpr size_t len = sizeof(buf);
-  // convPtoArray<P, len>(buf, pol);
-  // rom(rom_output, buf, len);
-
   blake3(out, (const uint8_t*)pol.get_coeffs(), pol.get_coeffs_size_bytes());
 }
 
+/** Implements Alice of the Proposed ROT
+
+    @tparam P NFL Polynomial type
+    @tparam rbytes Size of random value r
+    @tparam bbytes Size of random masks
+    @tparam HASHSIZE Size of random oracle
+*/ 
 template<typename P, size_t rbytes, size_t bbytes, size_t HASHSIZE>
 struct alice_rot_t
 {
+  /**@{*/
+  /** Used for RLWE sampling */
   P sR, eR, eR1;
+  /**@}*/
+  /** Polynomial output of random oracle such that p0 + p1 = h */
   P h;
+  /** Random OT channel */
   int b1;
+  /**@{*/
+  /** Used for reconciliation with Sender's RLWE sample */
   P kR, skR;
-
+  /**@}*/
+  
+  /** Type of polynomial coefficients */
   using value_t = typename P::value_type;
+  /** Gaussian Noise Sampler */
   nfl::FastGaussianNoise<uint8_t, value_t, 2>* g_prng;
   static_assert(HASHSIZE == 32); //since we are using Blake3
 
+  /**@{*/
+  /** Auxiliary structures for the implementation of Random Oracles */
   rom1_t<P> rom1;
   rom_P_O<P> rom1_output;
 
@@ -49,19 +71,29 @@ struct alice_rot_t
   uint8_t S1[bbytes];
 
   rom2_t<HASHSIZE> romMc;
-  //rom_k_O<HASHSIZE> romMc_output;
   uint8_t romMc_output[HASHSIZE];
   uint8_t hMc[HASHSIZE];
 
    rom2_t<HASHSIZE> romFinalM;
+  /**@}*/
 
+  /** Constructor of Alice
+
+      @param _g_prng Gaussian Noise sampler */
   alice_rot_t(nfl::FastGaussianNoise<uint8_t, value_t, 2> *_g_prng)
     : g_prng(_g_prng),
       rom1_output(h)
-      //romMc_output(hMc)
   {
   }
 
+  /** Implements first Alice message in proposed ROT
+
+      @param p0 Return Alice RLWE sample for "channel 0"
+      @param r_sid Concatenation of Session ID and random value of size 'rbytes'
+      @param hS0 Commitment to mask of channel 0
+      @param hS1 Commitment to mask of channel 1
+      @param sid Session ID
+      @param m Common polynomial */
   void msg1(P &p0, uint8_t *r_sid,
 	    uint8_t hS0[HASHSIZE], uint8_t hS1[HASHSIZE],
 	    uint32_t sid, const P &m)
@@ -81,12 +113,6 @@ struct alice_rot_t
     nfl::fastrandombytes(&S0[0], sizeof(S0));
     nfl::fastrandombytes(&S1[0], sizeof(S1));
 
-    // rom_k_O<HASHSIZE> romS0_output(hS0);
-    // rom_k_O<HASHSIZE> romS1_output(hS1);
-
-    // romSi(romS0_output, S0, sizeof(S0));
-    // romSi(romS1_output, S1, sizeof(S1));
-
     blake3(&hS0[0], &S0[0], sizeof(S0));
     blake3(&hS1[0], &S1[0], sizeof(S1));
 
@@ -97,6 +123,20 @@ struct alice_rot_t
       }
   }
 
+  /** Implements second Alice message in proposed ROT
+
+      @param Mb Outputted message
+      @param b Outputted channel
+      @param bS0 Mask for channel 0
+      @param bS1 Mask for channel 1
+      @param sid Session ID
+      @param pS Sender's RLWE sample
+      @param signal0 Hint signal for key exchange in channel 0
+      @param signal1 Hint signal for key exchange in channel 1
+      @param ha0 Commitment to key in channel 0 of KE
+      @param ha1 Commitment to key in channel 1 of KE
+      @param u Sender's mask
+      @return Returns true when all checks are successful */  
   bool msg2(uint8_t Mb[HASHSIZE],
 	    int &b,
 	    uint8_t bS0[bbytes], uint8_t bS1[bbytes],
@@ -117,7 +157,6 @@ struct alice_rot_t
         ke_t<P>::mod2(skR, kR, signal1);
       }
 
-    //hash_polynomial(romMc, skR, romMc_output);
     hash_polynomial(skR, romMc_output);
     memcpy(hMc, romMc_output, sizeof(uint8_t) * HASHSIZE);
 
@@ -150,8 +189,6 @@ struct alice_rot_t
 	  }
       }
 
-    //rom_k_O<HASHSIZE> romFinalM_output(Mb);
-    //romFinalM(romFinalM_output, Mb_sid, sizeof(Mb_sid));
     blake3(Mb, &Mb_sid[0], sizeof(Mb_sid));
     
     memcpy(bS0, S0, bbytes);
@@ -160,30 +197,59 @@ struct alice_rot_t
   }
 };
 
+/** Implements Bob of the Proposed ROT
+
+    @tparam P NFL Polynomial type
+    @tparam rbytes Size of random value r
+    @tparam bbytes Size of random masks
+    @tparam HASHSIZE Size of random oracle
+*/ 
 template<typename P, size_t rbytes, size_t bbytes, size_t HASHSIZE>
 struct bob_rot_t
 {
   static_assert(HASHSIZE == 32); //since we are using BLAKE
   
+  /**@{*/
+  /** Used for RLWE sampling */
   P sS, eS, eS1;
+  /**@}*/
+  /** Polynomial output of random oracle such that p0 + p1 = h */
   P h;
+  /** p1 corresponding to Alice's RLWE sample on channel 1 */
   P p1;
+  /**@{*/
+  /** Used for RLWE key exchange in channel 0,1 */
   P kS0, kS1;
+  /**@}*/
+  /**@{*/
+  /** Hint signals */
   P signal0, signal1;
-  P skS0, skS1;
+  /**@}*/
 
+  /**@}*/
+  /** Keys shared under base KE */
+  P skS0, skS1;
+  /**@}*/
   int a1;
 
+  /**@{*/
+  /** Commitments to receiver's masks */
   uint8_t hS0[HASHSIZE];
   uint8_t hS1[HASHSIZE];
   uint8_t hS0b[HASHSIZE];
   uint8_t hS1b[HASHSIZE];
+  /**@}*/
 
+  /** Random mask */
   uint8_t u[bbytes];
 
+  /** Coefficient type */
   using value_t = typename P::value_type;
+  /** Gaussian noise sampler */
   nfl::FastGaussianNoise<uint8_t, value_t, 2>* g_prng;
 
+  /**@{*/
+  /** Auxiliary structures for the implementation of Random Oracles */
   rom1_t<P> rom1;
   rom_P_O<P> rom1_output;
 
@@ -191,7 +257,11 @@ struct bob_rot_t
 
   rom_k_O<HASHSIZE> romhS0b_output;
   rom_k_O<HASHSIZE> romhS1b_output;
+  /**@}*/
 
+  /** Constructor of Bob
+
+      @param _g_prng Gaussian Noise sampler */
   bob_rot_t(nfl::FastGaussianNoise<uint8_t, value_t, 2> *_g_prng)
     : g_prng(_g_prng),
       rom1_output(h),
@@ -200,6 +270,20 @@ struct bob_rot_t
   {
   }
 
+  /** Implements first Bob message in proposed OT
+
+      @param pS Bob's RLWE sample
+      @param signal0 Outputted hint signal for "channel 0"
+      @param signal1 Outputted hint signal for "channel 1"
+      @param au Random mask
+      @param hma0 Commitment to shared secret under one of the KE channels
+      @param hma1 Commitment to shared secret under one of the KE channels
+      @param sid Session ID
+      @param hS0a Commitment to Alice's random mask 0
+      @param hS1a Commitment to Alice's random mask 1
+      @param p0 Alice RLWE sample for "channel 0"
+      @param r_sid Concatenation of Session ID and random value of size 'rbytes'
+      @param m Common polynomial */
   void msg1(P &pS, P &signal0, P &signal1,
 	    uint8_t au[bbytes],
             uint8_t hma0[HASHSIZE], uint8_t hma1[HASHSIZE],
@@ -242,10 +326,6 @@ struct bob_rot_t
     memcpy(au, u, bbytes);
 
     if (a1 == 0) {
-      //rom_k_O<HASHSIZE> romMa0_output(hma0);
-      //rom_k_O<HASHSIZE> romMa1_output(hma1);
-      //hash_polynomial(romM, skS0, romMa0_output);
-      //hash_polynomial(romM, skS1, romMa1_output);
       uint8_t romMa0_output[HASHSIZE];
       uint8_t romMa1_output[HASHSIZE];
       hash_polynomial(skS0, romMa0_output);
@@ -253,10 +333,6 @@ struct bob_rot_t
       memcpy(hma0, romMa0_output, HASHSIZE * sizeof(uint8_t));
       memcpy(hma1, romMa1_output, HASHSIZE * sizeof(uint8_t));
     } else {
-      //rom_k_O<HASHSIZE> romMa0_output(hma1);
-      //rom_k_O<HASHSIZE> romMa1_output(hma0);
-      //hash_polynomial(romM, skS0, romMa0_output);
-      //hash_polynomial(romM, skS1, romMa1_output);
       uint8_t romMa0_output[HASHSIZE];
       uint8_t romMa1_output[HASHSIZE];
       hash_polynomial(skS0, romMa0_output);
@@ -266,12 +342,19 @@ struct bob_rot_t
     }
   }
 
+  /** Implements second Bob message in proposed ROT
+
+      @param msg0 Returned message in channel 0
+      @param msg1 Returned message in channel 1
+      @param sid Session ID
+      @param S0 Alice's mask 0
+      @param S1 Alice's mask 1
+      @return Returns true if opening of masks is successful
+  */
   bool msg2(uint8_t msg0[HASHSIZE], uint8_t msg1[HASHSIZE],
 	    uint32_t sid,
 	    const uint8_t S0[bbytes], const uint8_t S1[bbytes])
   {
-    // romM(romhS0b_output, S0, bbytes);
-    // romM(romhS1b_output, S1, bbytes);
     blake3(&hS0b[0], &S0[0], bbytes);
     blake3(&hS1b[0], &S1[0], bbytes);
 
@@ -311,10 +394,6 @@ struct bob_rot_t
 	  }
       }
     
-    // rom_k_O<HASHSIZE> rommsg0_output(msg0);
-    // rom_k_O<HASHSIZE> rommsg1_output(msg1);
-    // romM(rommsg0_output, msg0_sid, sizeof(msg0_sid));
-    // romM(rommsg1_output, msg1_sid, sizeof(msg1_sid));
     blake3(msg0, &msg0_sid[0], sizeof(msg0_sid));
     blake3(msg1, &msg1_sid[0], sizeof(msg1_sid));
 

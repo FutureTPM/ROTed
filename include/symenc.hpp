@@ -3,26 +3,38 @@
 #include "macros.hpp"
 #include <openssl/aes.h>
 
+/** Symmetric-key encryption engine
+
+    @tparam pbytes Size of plaintext
+    @tparam rbytes Size of random bytes
+    @tparam bbytes Size of key
+*/
 template<size_t pbytes, size_t rbytes, size_t bbytes>
 struct sym_enc_t
 {
+  /** Size of IV */
   static constexpr size_t ivbytes = 16;
+  /** Size of ciphertext for concatention of plaintext and random bytes */
   static constexpr size_t outbytes = AES_OUTPUT_LENGTH(pbytes + rbytes);
+  /** Used to encode/decode plaintext and random bytes */
   uint8_t plain1[outbytes];
 
+  /** Symmetric-key ciphertext type */
   struct cipher_t
   {
+    /** Ciphertext */
     uint8_t buf[outbytes];
+    /** IV */
     uint8_t iv[ivbytes];
-
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-      ar & buf;
-      ar & iv;
-    }
   };
 
+  /** Encrypts (in || r) using (key, IV) with AES-CBC
+
+      @param out Outputted ciphertext
+      @param in Inputted plaintext
+      @param r Inputted random value
+      @param key Inputted key
+      @param iv Inputted IV */
   void SEncIV(cipher_t &out,
 	      const uint8_t in[pbytes],
 	      const uint8_t r[rbytes],
@@ -39,6 +51,12 @@ struct sym_enc_t
     memcpy(&out.iv[0], &iv[0], ivbytes);
   }
 
+  /** Encrypts (in || r) using (key, out.IV) with AES-CBC
+
+      @param out Outputted ciphertext
+      @param in Inputted plaintext
+      @param r Inputted random value
+      @param key Inputted key */
   void SEnc(cipher_t &out,
 	    const uint8_t in[pbytes],
 	    const uint8_t r[rbytes],
@@ -55,6 +73,11 @@ struct sym_enc_t
     memcpy(&out.iv[0], &tmp_iv[0], ivbytes);
   }
 
+  /** Decrypts in using key with AES-CBC
+
+      @param out Outputted plaintext
+      @param in Inputted ciphertext
+      @param key Inputted key */
   void SDec(uint8_t out[pbytes],
 	    const cipher_t &in,
 	    const uint8_t key[bbytes])

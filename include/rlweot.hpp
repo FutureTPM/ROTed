@@ -242,13 +242,13 @@ struct alice_ot_t
 
     if (b == 0)
       {
-	sym_enc.SEncIV(abb, xbb, ybb, bskRbb, a1.iv);
+	sym_enc.SEnc(abb, xbb, ybb, bskRbb);
 	if (memcmp(abb.buf, a1.buf, sizeof(abb.buf)) != 0)
 	  return false;
       }
     else
       {
-	sym_enc.SEncIV(abb, xbb, ybb, bskRbb, a0.iv);
+	sym_enc.SEnc(abb, xbb, ybb, bskRbb);
 	if (memcmp(abb.buf, a0.buf, sizeof(abb.buf)) != 0)
 	  return false;
       }
@@ -293,13 +293,13 @@ struct alice_ot_t
 
     if (b == 0)
       {
-	sym_enc.SEncIV(ab, xb, yb, bskRb, a0.iv);
+	sym_enc.SEnc(ab, xb, yb, bskRb);
 	if (memcmp(ab.buf, a0.buf, sizeof(ab.buf)) != 0)
 	  return false;
       }
     else
       {
-	sym_enc.SEncIV(ab, xb, yb, bskRb, a1.iv);
+	sym_enc.SEnc(ab, xb, yb, bskRb);
 	if (memcmp(ab.buf, a1.buf, sizeof(ab.buf)) != 0)
 	  return false;
       }

@@ -782,7 +782,7 @@ void rot_test()
 
 void symenc_test()
 {
-  const size_t numtests = 1000;
+  const size_t numtests = 10000;
   constexpr size_t pbytes = 14;
   constexpr size_t rbytes = 8;
   constexpr size_t bbytes = 16;
@@ -800,14 +800,6 @@ void symenc_test()
       nfl::fastrandombytes(key, bbytes);
 
       symenc.SEnc(c, in, r, key);
-      symenc.SDec(out, c, key);
-
-      CU_ASSERT(std::equal(&in[0], &in[pbytes], &out[0]));
-
-      uint8_t iv[16];
-      memset(iv, 0, sizeof(uint8_t) * 16);
-
-      symenc.SEncIV(c, in, r, key, iv);
       symenc.SDec(out, c, key);
 
       CU_ASSERT(std::equal(&in[0], &in[pbytes], &out[0]));
@@ -864,13 +856,13 @@ int main(int argc, char *argv[])
 #endif // OT_TEST
 #endif // OT_ROTTED_TEST
 
-  //CU_pSuite suite3 = CU_add_suite("symenc", NULL, NULL);
-  //if (suite3 == NULL) abort();
+  CU_pSuite suite3 = CU_add_suite("symenc", NULL, NULL);
+  if (suite3 == NULL) abort();
 
-  //if ((NULL == CU_add_test(suite3, "symenc_test", symenc_test)))
-  //  {
-  //    abort();
-  //  }
+  if ((NULL == CU_add_test(suite3, "symenc_test", symenc_test)))
+   {
+     abort();
+   }
 
   CU_basic_set_mode(CU_BRM_VERBOSE);
   CU_basic_run_tests();

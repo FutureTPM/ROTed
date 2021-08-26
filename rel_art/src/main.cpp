@@ -8,6 +8,12 @@
 #include <boost/random/variate_generator.hpp>
 #include "blake3.h"
 
+/** Hashes in of size len into out using Blake3
+
+    @param out Output array
+    @param in Input array
+    @param len Size of input array
+*/
 void blake3(uint8_t *out, const uint8_t *in, size_t len)
 {
   blake3_hasher hasher;
@@ -16,6 +22,7 @@ void blake3(uint8_t *out, const uint8_t *in, size_t len)
   blake3_hasher_finalize(&hasher, out, BLAKE3_OUT_LEN);
 }
 
+/** Tests OT from DDH as in [PVW08] */
 void ddhot_test()
 {
   const size_t numtests = 1000;
@@ -41,11 +48,7 @@ void ddhot_test()
   m1 = BN_new();
   m2 = BN_new();
 
-  //uint8_t dump[4096];
-  //BN_CTX* dump2 = BN_CTX_new();
-
   for (size_t i = 0; i < numtests; i++) {
-      //long long start = cpucycles_amd64cpuinfo();
       alice_ot_t alice(crs);
       bob_ot_t bob(crs);
       BN_rand(m, 32, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
@@ -70,9 +73,7 @@ void ddhot_test()
       }
       BN_sub(m2, m2, tmp);
 
-      //CU_ASSERT(BN_is_zero(m2));
-      //long long end = cpucycles_amd64cpuinfo();
-      //printf("Clock cycles elapsed: %lld\n", end - start);
+      CU_ASSERT(BN_is_zero(m2));
   }
 
   EC_POINT_free(g);
@@ -86,6 +87,8 @@ void ddhot_test()
   BN_free(m2);
 }
 
+/** Implements ROT from DDH OT in [PVW08] using
+    black box transform */
 void ddhrot_test()
 {
   const size_t numtests = 1000;
@@ -138,7 +141,6 @@ void ddhrot_test()
       /*
        * START Standard OT
        */
-      //long long start = cpucycles_amd64cpuinfo();
       alice_ot_t alice(crs);
       bob_ot_t bob(crs);
       BN_rand(m, 32, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
@@ -164,8 +166,6 @@ void ddhrot_test()
       BN_sub(check, m2, tmp);
 
       CU_ASSERT(BN_is_zero(check));
-      //long long end = cpucycles_amd64cpuinfo();
-      //printf("Clock cycles elapsed: %lld\n", end - start);
       /*
        * END Standard OT
        */
@@ -266,54 +266,10 @@ void ddhrot_test()
   BN_free(check);
 }
 
-void ddhcry_test()
-{
-  const size_t numtests = 1000;
-
-  ec_params_t params(NID_X9_62_prime256v1);
-  ec_cry_t cry(params, 32);
-
-  EC_POINT *u, *v, *m1, *m2;
-
-  u = EC_POINT_new(params.group);
-  v = EC_POINT_new(params.group);
-  m1 = EC_POINT_new(params.group);
-  m2 = EC_POINT_new(params.group);
-
-  for (size_t i = 0; i < numtests; i++)
-    {
-      cry.keygen();
-
-      params.random_generator(m1);
-      cry.encrypt(u, v, m1);
-      cry.decrypt(m2, u, v);
-
-      params.point_inv(m1);
-      params.point_add(m1, m1, m2);
-
-      CU_ASSERT(EC_POINT_is_at_infinity(params.group, m1));
-
-      cry.cleanup();
-    }
-
-  EC_POINT_free(u);
-  EC_POINT_free(v);
-  EC_POINT_free(m1);
-  EC_POINT_free(m2);
-}
-
 int main(int argc, char *argv[])
 {
   if (CUE_SUCCESS != CU_initialize_registry())
     return CU_get_error();
-
-  //CU_pSuite suite = CU_add_suite("DDHCRY", NULL, NULL);
-  //if (suite == NULL) abort();
-
-  //if ((NULL == CU_add_test(suite, "ddhcry", ddhcry_test)))
-  //  {
-  //    abort();
-  //  }
 
 #ifdef OT_TEST
   CU_pSuite suite1 = CU_add_suite("DDHOT", NULL, NULL);

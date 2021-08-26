@@ -14,6 +14,7 @@ struct sym_enc_t
 {
   /** Size of IV */
   static constexpr size_t ivbytes = 16;
+  /** Effective bytes used by IV */
   static constexpr size_t ivlength = MIN(ivbytes, rbytes);
   /** Size of ciphertext for concatention of plaintext and random bytes */
   static constexpr size_t outbytes = AES_OUTPUT_LENGTH(pbytes);

@@ -114,7 +114,7 @@ system.
 Using cmake, one can build the code using:
 
 ```bash
-  cmake -DCMAKE_BUILD_TYPE=Release -H. -B_builds -G "Unix Makefiles"
+  cmake -DCMAKE_BUILD_TYPE=Release -S. -B_builds -G "Unix Makefiles"
   cmake --build _builds/
 ```
 
@@ -357,6 +357,18 @@ it.
 ```
 git apply utils/openssl_old.patch
 ```
+
+## Documentation
+
+The code has been documented with Doxygen-based comments.
+
+Running
+
+```
+doxygen -g Doxyfile
+```
+
+will produce an HTML representation of the comments in the `comments` folder.
 
 ## License
 

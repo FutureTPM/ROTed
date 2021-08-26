@@ -226,10 +226,11 @@ struct bob_rot_t
   P signal0, signal1;
   /**@}*/
 
-  /**@}*/
+  /**@{*/
   /** Keys shared under base KE */
   P skS0, skS1;
   /**@}*/
+  /** Random flipping of channels */
   int a1;
 
   /**@{*/

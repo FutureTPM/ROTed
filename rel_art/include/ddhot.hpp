@@ -2,12 +2,30 @@
 #define __DDHOT_HPP__
 #include "ddhcry.hpp"
 
+/** Implements the CRS of OT from DDH as per [PVW08]
+
+[PVW08] Chris Peikert, Vinod Vaikuntanathan, and Brent Waters. A framework
+for efficient and composable oblivious transfer. In David Wagner, editor,
+Advances in Cryptology – CRYPTO 2008, volume 5157 of Lecture Notes in
+Computer Science, pages 554–571, Santa Barbara, CA, USA, August 17–21,
+2008. Springer, Heidelberg, Germany. doi:10.1007/978-3-540-85174-5_31.
+*/
 struct crs_t
 {
+  /**@{*/
+  /** EC points such that h := g^x and h1 := g1^x */
   EC_POINT *g, *h, *g1, *h1;
+  /**@}*/
+  /** EC parameters */
   ec_params_t &params;
+  /** Encoding parameters */
   int k;
 
+  /** Initializes CRS
+
+      @param params1 EC parameters
+      @param k1 Encoding parameter
+  */
   crs_t(ec_params_t &params1, int k1)
     : params(params1)
   {
@@ -33,6 +51,9 @@ struct crs_t
     BN_free(x1);
   }
 
+  /** Copy constructor
+
+      @param other Copied structure */  
   crs_t(const crs_t &other)
     : params(other.params)
   {
@@ -43,6 +64,9 @@ struct crs_t
     k = other.k;
   }
 
+  /** Swaps resources of two ec_params_t structures
+
+      @param other Swapped structure */  
   void swap(crs_t &other)
   {
     std::swap(g, other.g);
@@ -52,6 +76,11 @@ struct crs_t
     std::swap(k, other.k);
   }
 
+  /** Equal operator (implemented from copy constructor and
+      swap operation)
+
+      @param other Structure to be replicated
+  */
   crs_t &operator=(crs_t other)
   {
     this->swap(other);
@@ -59,6 +88,7 @@ struct crs_t
     return *this;
   }
 
+  /** Cleans up resources */
   ~crs_t()
   {
     EC_POINT_free(g);
@@ -68,13 +98,22 @@ struct crs_t
   }
 };
 
+/** Implements Alice in the OT from DDH in [PVW08] */
 struct alice_ot_t
 {
+  /** Chosen channel */
   int b;
+  /** Common reference string */
   crs_t &crs;
+  /** EC parameters */
   ec_params_t &params;
+  /** Base dual-mode cryptosystem */
   ec_cry_t cry;
 
+  /** Constructor for Alice
+
+      @param crs1 CRS
+  */
   alice_ot_t(crs_t &crs1)
     : crs(crs1),
       params(crs1.params),
@@ -82,6 +121,12 @@ struct alice_ot_t
   {
   }
 
+  /** Implements Alice's first message in OT from DDH in [PVW08]
+
+      @param g Outputted point g = g_(b1)^x for a random x
+      @param h Outputted point h = h_(b1)^x for a random x
+      @param b1 Chosen OT channel
+   */
   void msg1(EC_POINT *g, EC_POINT *h, int b1)
   {
     b = b1;
@@ -104,9 +149,18 @@ struct alice_ot_t
     params.point_mul(h, tmp2, r);
 
     //hi^r = (gi^xi)^r
-    // BN_free(r);
   }
 
+  /** Implements Alice's second message in OT from DDH in [PVW08]
+
+      Outputs m := Decrypt(u_(b1), v_(b1)) for b1 chosen in msg1
+
+      @param m Outputted message
+      @param u Channel 0 ciphertext
+      @param v Channel 0 ciphertext
+      @param u1 Channel 1 ciphertext
+      @param v1 Channel 1 ciphertext
+  */
   void msg2(BIGNUM *m,
             EC_POINT *u, EC_POINT *v,
             EC_POINT *u1, EC_POINT *v1)
@@ -123,13 +177,22 @@ struct alice_ot_t
   }
 };
 
+/** Implements Bob in the OT from DDH in [PVW08] */
 struct bob_ot_t
 {
+  /** Common reference string */
   crs_t &crs;
+  /** Common reference string */
   ec_params_t &params;
+  /** Base dual-mode cryptosystem for channel 0 */
   ec_cry_t cry;
+  /** Base dual-mode cryptosystem for channel 1 */
   ec_cry_t cry1;
 
+  /** Constructor for Bob
+
+      @param crs1 CRS
+  */
   bob_ot_t(crs_t &crs1)
     : crs(crs1),
       params(crs1.params),
@@ -137,7 +200,22 @@ struct bob_ot_t
       cry1(crs1.params, crs1.k)
   {
   }
+  
+  /** Implements Bob's first message in OT from DDH in [PVW08]
 
+      Encrypts m under (crs.g, crs.h, g, h) and m1
+      under (crs.g1, crs.h1, g, h), producing (u, v) and
+      (u1, v1), respectively
+
+      @param u Outputted ciphertext in channel 0
+      @param v Outputted ciphertext in channel 0
+      @param u1 Outputted ciphertext in channel 1
+      @param v1 Outputted ciphertext in channel 1
+      @param g Randomized point produced by Alice
+      @param h Randomized point produced by Alice
+      @param m Message encrypted under channel 0
+      @param m1 Message encrypted under channel 1
+   */
   void msg1(EC_POINT *u, EC_POINT *v,
             EC_POINT *u1, EC_POINT *v1,
             EC_POINT *g, EC_POINT *h,

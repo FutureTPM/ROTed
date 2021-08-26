@@ -15,32 +15,35 @@ In order to run the software the user needs to install multiple
 dependencies. The names of the dependencies will vary by Linux distribution and
 operating system. Some dependencies are optional while others are required for
 the code to build. The optional dependencies are only needed if you intend to
-replicate our experiments.
+replicate our experiments. The dependencies versions used in testing are
+in parenthesis. If for some reason the build fails, please try to install
+the versions described prior to opening an issue.
 
 ### Required
 
-* GMP
-* MPFR
-* OpenSSL
-* CMake3
-* CUnit
-* Boost
+* GMP (6.2.1-1, 6.0.0-15)
+* MPFR (4.1.0.p13-1, 3.1.1-4)
+* OpenSSL (1.1.1.k-1, 1.0.2k-21)
+* CMake3 (3.21.1-1, 3.17.5-1)
+* CUnit (2.1.3)
+* Boost (1.76.0-1, 1.53.0-28)
+* git (2.33.0-1, 1.8.3-23)
 
 We present the install commands for some Linux distributions:
 
 * Debian/Ubuntu
 ```bash
-sudo apt-get install cmake libgmp-dev libmpfr-dev libcunit1-dev libboost-all-dev openssl libssl-dev valgrind massif-visualizer
+sudo apt-get install git cmake libgmp-dev libmpfr-dev libcunit1-dev libboost-all-dev openssl libssl-dev valgrind massif-visualizer
 ```
 
 * Arch Linux
 ```bash
-sudo pacman -Sy cmake gmp mpfr cunit boost boost-libs openssl valgrind massif-visualizer
+sudo pacman -Sy git cmake gmp mpfr cunit boost boost-libs openssl valgrind massif-visualizer
 ```
 
 * CentOS 8
 ```bash
-sudo dnf install cmake gmp gmp-devel mpfr mpfr-devel CUnit CUnit-devel boost boost-devel openssl openssl-devel valgrind
+sudo dnf install git cmake gmp gmp-devel mpfr mpfr-devel CUnit CUnit-devel boost boost-devel openssl openssl-devel valgrind
 ```
 
 If your distribution is not listed here make sure you are using the same
@@ -54,9 +57,9 @@ install `rustc` and `cargo` through the package manager in your Linux
 distribution. `hyperfine` is a benchmarking tool written in Rust.
 `numactl` is used to pin a process to a single core.
 
-* [rustup](https://rustup.rs/)
-* [hyperfine](https://github.com/sharkdp/hyperfine)
-* [numactl](https://github.com/numactl/numactl)
+* [rustup](https://rustup.rs/) (1.24.3)
+* [hyperfine](https://github.com/sharkdp/hyperfine) (1.11.0)
+* [numactl](https://github.com/numactl/numactl) (2.0.14-1, 2.0.12-5)
 
 We present the install commands for some Linux distributions:
 
@@ -106,6 +109,8 @@ After installing all required dependencies, initialize the repo by running:
 ```bash
 ./init-repo.sh
 ```
+
+(Make sure you execute `init-repo.sh` at the root of the artifact.)
 
 Our implementations depend on [BLAKE3](https://github.com/BLAKE3-team/BLAKE3).
 The `init-repo.sh` will initialize this dependency and connect it to our build
@@ -171,6 +176,13 @@ By default all programs run through CUnit to ensure that the protocols have
 the expected output. As such, the only output available
 will be CUnit's output, _i.e._, it will show if any assertions failed.
 
+## Folder Structure
+
+* `include`, `rel_art` and `src` contain our implementations.
+* `thirdparty` contains third-party libraries which are needed to build the
+project.
+* `utils` contains utilities scripts to ease certain tasks
+
 ## Code Overview
 
 **If you want to reuse our code you should read this section.**
@@ -214,9 +226,11 @@ The first step to replicate the results is to set the clock frequency of all
 processors to the described values. There are two scripts in `utils/` which
 allow the user to read and set the current operating clock frequency.
 The user should run `./utils/watch_cpufreq.sh` to get the available clock
-frequencies and `./utils/set_cpufreq.sh` to set one.
+frequencies and `./utils/set_cpufreq.sh` to set one. By setting the
+clock frequency to a set value, by default, the "boost" frequency is
+disabled.
 
-We strongly encourage people to use the `benchmark.sh` script in order to
+We strongly encourage people to use the `utils/benchmark.sh` script in order to
 replicate the results. This script will build all configurations for the
 running architecture and execute all configurations using the benchmark
 tool, hyperfine. When executing hyperfine we pin the process to the first core.
@@ -226,11 +240,86 @@ incurred by scheduling the process to run in a different core. At the end of
 the script, hyperfine will output the speedups for each protocol configuration.
 Each protocol is executed 1k times. Given that the clock frequency is fixed,
 the number of (R)OTs/s = (1k \* (1/FREQ)) / t, where t is the time taken to run
-the specified protocol.
+the specified protocol. After benchmarking, the user can reset their
+CPU frequency configurations using `./utils/restore_cpufreq.sh`.
 
 The user should not try to replicate results using docker or other
 virtualization software. Doing so incurs extra performance penalties due to the
 virtualization layer.
+
+_Do not run `./utils/{restore_cpufreq, watch_cpufreq, set_cpufreq}.sh` as root.
+All scripts provide a `-h || --help` flag._
+
+### Fixing the Frequency on Intel Machines
+
+If you are getting an error when setting the frequencies and you are using
+an Intel machines, please go through these steps prior to opening an issue.
+A fair degree of caution should be taken when following these steps as the
+changes detailed will fundamentally alter how the CPU operates by setting
+a constant frequency. This may be undesireable if, for example,
+you are benchmarking on a laptop. Due to the multitude of configurations
+present on modern machines, we can't provide a specific step-by-step guide
+to everyone. This section only shows the basic steps of fixing the problem.
+
+By default, on Linux, Intel loads a proprietary driver, called `intel_pstate`,
+in order to control the frequencies of each core. This driver goes against
+what the scripts provided try to do. Instead the user should use the Linux
+driver `acpi-cpufreq`. To install the driver:
+
+* Debian/Ubuntu
+```bash
+sudo apt-get install acpi acpid acpi-support
+```
+
+* Arch Linux
+```bash
+sudo pacman -Sy acpi acpid
+```
+
+* CentOS 8
+```bash
+sudo dnf install acpid acpica-tools
+```
+
+Next we need to tell Linux not to load that driver. If you are using grub,
+edit `/etc/default/grub` and add `intel_pstate=disable` to
+`GRUB_CMDLINE_LINUX`. Prior to usage, the grub file needs to be regenerated.
+Unfortunately, this step is distro dependent. If you're on Debian/Ubuntu the
+command `update-grub` should be available. Otherwise we suggest googling
+the correct command for your particular distro.
+
+You may now reboot the machine and access the BIOS. In the BIOS enable the
+SpeedStep option. The name of the option will vary by motherboard manufacturer
+and, as such, we can't provide more specific details. Once again, if this
+specific option isn't available, you're going to have to google for an answer.
+
+After setting the option and reboot again, we can now check whether the
+correct driver is being used. For this we will use the utility `cpupower`.
+
+* Debian/Ubuntu
+```bash
+sudo apt-get install linux-tools-$(uname -r)
+```
+
+* Arch Linux
+```bash
+sudo pacman -Sy cpupower
+```
+
+* CentOS 8
+```bash
+sudo dnf install kernel-tools
+```
+
+Running `sudo cpupower frequency-info` should yield
+
+```
+analyzing CPU 0:
+  driver: acpi-cpufreq
+  <snip>
+```
+
+The scripts provided should now work.
 
 ### Details on `benchmark.sh` and Paper Results
 
@@ -358,9 +447,14 @@ it.
 git apply utils/openssl_old.patch
 ```
 
-## Documentation
+# Auxiliary Documentation
 
-The code has been documented with Doxygen-based comments.
+The RLWE OT implementation, with reference [BDGM19] in the paper, is based
+on this [paper](https://eprint.iacr.org/2018/1155). The elliptic curve
+OT implementation, with reference [PVW08] in the paper, is based on this
+[paper](https://eprint.iacr.org/2007/348).
+
+Furthermore, the code has been documented with Doxygen-based comments.
 
 Running
 

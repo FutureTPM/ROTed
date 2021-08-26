@@ -12,12 +12,12 @@ find_package(MPFR REQUIRED)
 find_package(CUNIT REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-add_subdirectory(nfl)
+add_subdirectory(thirdparty/nfl)
 add_subdirectory(rel_art)
-add_subdirectory(BLAKE3/c)
+add_subdirectory(thirdparty/BLAKE3/c)
 
-include_directories(include nfl/include
-    BLAKE3/c ${OPENSSL_INCLUDE_DIR} ${CUNIT_INCLUDE_DIR})
+include_directories(include thirdparty/nfl/include
+    thirdparty/BLAKE3/c ${OPENSSL_INCLUDE_DIR} ${CUNIT_INCLUDE_DIR})
 
 file(GLOB RLWEOT_HDRS_0 include/*.hpp)
 

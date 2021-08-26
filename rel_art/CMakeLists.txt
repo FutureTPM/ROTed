@@ -4,7 +4,7 @@ project(rel_art CXX)
 find_package(OpenSSL REQUIRED)
 find_package(CUNIT REQUIRED)
 
-include_directories(include ../BLAKE3/c ${OPENSSL_INCLUDE_DIR} ${CUNIT_INCLUDE_DIR})
+include_directories(include ../thirdparty/BLAKE3/c ${OPENSSL_INCLUDE_DIR} ${CUNIT_INCLUDE_DIR})
 
 file(GLOB RELART_HDRS_0 include/*.hpp)
 

@@ -13,7 +13,7 @@ Computer Science, pages 554–571, Santa Barbara, CA, USA, August 17–21,
 struct crs_t
 {
   /**@{*/
-  /** EC points such that h := g^x and h1 := g1^x */
+  /** EC points such that h := g^x and h1 := g1^x1 */
   EC_POINT *g, *h, *g1, *h1;
   /**@}*/
   /** EC parameters */

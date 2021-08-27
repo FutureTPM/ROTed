@@ -55,18 +55,23 @@ dependencies through [pkgs](https://pkgs.org/).
 using `rustup` to install the required tooling for Rust you may choose to
 install `rustc` and `cargo` through the package manager in your Linux
 distribution. `hyperfine` is a benchmarking tool written in Rust.
-`numactl` is used to pin a process to a single core.
+You only need to install `rustup`, or `rustc` and `cargo` if your distro
+doesn't provide a binary for `hyperfine`. `numactl` is used to pin a process
+to a single core. The repository documentation is provided in the `doxygen`
+format. If you want to generate an HTML of the documentation you will have
+to install `doxygen`.
 
 * [rustup](https://rustup.rs/) (1.24.3)
 * [hyperfine](https://github.com/sharkdp/hyperfine) (1.11.0)
 * [numactl](https://github.com/numactl/numactl) (2.0.14-1, 2.0.12-5)
+* [doxygen](https://github.com/doxygen/doxygen) (1.8.17, 1.9.1-1)
 
 We present the install commands for some Linux distributions:
 
 * Debian/Ubuntu
     * Using `rustup`
 ```bash
-sudo apt-get install numactl
+sudo apt-get install numactl doxygen
 cargo install hyperfine
 ```
 
@@ -78,13 +83,13 @@ cargo install hyperfine
 
 * Arch Linux
 ```bash
-sudo pacman -Sy numactl hyperfine
+sudo pacman -Sy numactl hyperfine doxygen
 ```
 
 * CentOS 8
     * Using `rustup`
 ```bash
-sudo dnf install numactl
+sudo dnf install numactl doxygen
 cargo install hyperfine
 ```
 
@@ -459,10 +464,12 @@ Furthermore, the code has been documented with Doxygen-based comments.
 Running
 
 ```
-doxygen -g Doxyfile
+doxygen Doxyfile
 ```
 
 will produce an HTML representation of the comments in the `comments` folder.
+To read the documentation, open `index.html` in `comments/html` with your
+favorite browser.
 
 ## License
 

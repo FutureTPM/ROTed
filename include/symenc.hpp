@@ -1,3 +1,6 @@
+/**
+@file
+*/
 #ifndef __SYMENC_HPP__
 #define __SYMENC_HPP__
 #include "macros.hpp"

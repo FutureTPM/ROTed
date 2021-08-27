@@ -1,3 +1,6 @@
+/**
+@file
+*/
 #ifndef __DDH_H__
 #define __DDH_H__
 
@@ -79,7 +82,7 @@ struct ec_params_t
   }
 
   /** Computes a random generator.
-      
+
       @param p Outputted random generator
   */
   void random_generator(EC_POINT *p)

@@ -1,3 +1,6 @@
+/**
+@file
+*/
 #ifndef __ROMS_HPP__
 #define __ROMS_HPP__
 #include "blake3.h"
@@ -116,7 +119,7 @@ struct rom_P_O
 template<typename P>
 struct rom_P_T
 {
-  /** Indicates how many polynomial coefficients 
+  /** Indicates how many polynomial coefficients
       the output of a single Blake3 iteration can fill */
   static constexpr size_t N = 256 / P::nbits;
   /** Type of polynomial coefficient */
@@ -134,7 +137,7 @@ struct rom_P_T
   /** Counts how many words have been outputted. When k reaches
       N, j is incremented and a1/state are recomputed */
   int k;
-  
+
   /** Initializes pointer to internal rom_t array
 
       @param b Internal rom_t array */

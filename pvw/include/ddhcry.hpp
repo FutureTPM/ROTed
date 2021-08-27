@@ -1,3 +1,6 @@
+/**
+@file
+*/
 #ifndef __DDHCRY_HPP__
 #define __DDHCRY_HPP__
 #include "ddh.hpp"
@@ -95,14 +98,14 @@ struct ec_cry_t
 		     EC_POINT *in_h1)
   {
     g = in_g;
-    h = in_h; 
+    h = in_h;
     g1 = in_g1;
     h1 = in_g1;
   }
 
   /** Initializes pointer to secret-key
 
-      Value x s.t. 
+      Value x s.t.
 
       in_h = in_g^x
       in_h1 = in_g1^x
@@ -132,7 +135,7 @@ struct ec_cry_t
     params.point_mul(h1, h, x); //h1 = h^x
   }
 
-  /** Produces (u,v) s.t. 
+  /** Produces (u,v) s.t.
 
       u = g^s h^t, v = g1^s h1^t = (g^s + h^t)^x
       where (g, h, g1, h1) is the public-key
@@ -168,7 +171,7 @@ struct ec_cry_t
       @param u Encryption of m
       @param v Encryption of m
       @param m Message to be encrypted
-  */ 
+  */
   inline void encrypt(EC_POINT *u, EC_POINT *v, EC_POINT *m)
   {
     randomise(u, v); //v = u^x

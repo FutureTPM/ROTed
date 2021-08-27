@@ -1,3 +1,6 @@
+/**
+@file
+*/
 #ifndef __DDHOT_HPP__
 #define __DDHOT_HPP__
 #include "ddhcry.hpp"
@@ -53,7 +56,7 @@ struct crs_t
 
   /** Copy constructor
 
-      @param other Copied structure */  
+      @param other Copied structure */
   crs_t(const crs_t &other)
     : params(other.params)
   {
@@ -66,7 +69,7 @@ struct crs_t
 
   /** Swaps resources of two ec_params_t structures
 
-      @param other Swapped structure */  
+      @param other Swapped structure */
   void swap(crs_t &other)
   {
     std::swap(g, other.g);
@@ -200,7 +203,7 @@ struct bob_ot_t
       cry1(crs1.params, crs1.k)
   {
   }
-  
+
   /** Implements Bob's first message in OT from DDH in [PVW08]
 
       Encrypts m under (crs.g, crs.h, g, h) and m1

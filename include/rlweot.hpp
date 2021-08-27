@@ -1,3 +1,6 @@
+/**
+@file
+*/
 #ifndef __RLWEOT_HPP__
 #define __RLWEOT_HPP__
 #include <iostream>
@@ -43,7 +46,7 @@ void convPtoArray(uint8_t arr[bbytes], const P &pol)
 	{
 	  size_t iLower = i & 7;
 	  arr[i / 8] |= pol(0, i) << iLower;
-	}      
+	}
     }
 }
 
@@ -56,7 +59,7 @@ Springer International Publishing
 
 @tparam P NFL Polynomial type
 @tparam rbytes Size of symmetric cipher key
-@tparam bbytes Size of output of random oracle 
+@tparam bbytes Size of output of random oracle
 */
 template<typename P, size_t rbytes, size_t bbytes>
 struct alice_ot_t
@@ -357,7 +360,7 @@ Springer International Publishing
 
 @tparam P NFL Polynomial type
 @tparam rbytes Size of symmetric cipher key
-@tparam bbytes Size of output of random oracle 
+@tparam bbytes Size of output of random oracle
 */
 template<typename P, size_t rbytes, size_t bbytes>
 struct bob_ot_t
@@ -370,7 +373,7 @@ struct bob_ot_t
   P h;
   /** p1 corresponding to Alice's RLWE sample on channel 1 */
   P p1;
-  
+
   /**@{*/
   /** Used for RLWE key exchange in channel 0,1 */
   P kS0, kS1;
@@ -379,7 +382,7 @@ struct bob_ot_t
   /** Hint signals */
   P signal0, signal1;
   /**@}*/
-  
+
   /**@{*/
   /** Used to produce challenge */
   P skS0, skS1;

@@ -1,3 +1,6 @@
+/**
+@file
+*/
 #ifndef __MACROS_HPP__
 #define __MACROS_HPP__
 #include <openssl/aes.h>

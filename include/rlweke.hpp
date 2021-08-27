@@ -1,3 +1,6 @@
+/**
+@file
+*/
 #ifndef __RLWEKE_HPP__
 #define __RLWEKE_HPP__
 #include <nfl.hpp>

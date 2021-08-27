@@ -200,11 +200,11 @@ There are 4 relevant folders: `nfl`, `include`, `pvw`, and `src`.
 lattice arithmetic. We have modified `nfl` in order to support an AVX512
 backend for x86 architectures and an NEON
 backend for ARM architectures. Specifically we added the files
-[avx512.hpp](nfl/include/nfl/opt/arch/avx512.hpp) and
-[neon.hpp](nfl/include/nfl/opt/arch/neon.hpp) to `nfl/include/nfl/opt/arch/`.
+[avx512.hpp](thirdparty/nfl/include/nfl/opt/arch/avx512.hpp) and
+[neon.hpp](thirdparty/nfl/include/nfl/opt/arch/neon.hpp) to `thirdparty/nfl/include/nfl/opt/arch/`.
 We added the backend support to the operations in
-[ops.hpp](nfl/include/nfl/ops.hpp) and architectural support in
-[arch.hpp](nfl/include/nfl/arch.hpp). The cmake script was also modified in
+[ops.hpp](thirdparty/nfl/include/nfl/ops.hpp) and architectural support in
+[arch.hpp](thirdparty/nfl/include/nfl/arch.hpp). The cmake script was also modified in
 order to support the new backends.
 
 `include` contains all of the data structures used in order to run the proposed

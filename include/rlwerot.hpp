@@ -1,3 +1,6 @@
+/**
+@file
+*/
 #ifndef __RLWEROT_HPP__
 #define __RLWEROT_HPP__
 #include <iostream>
@@ -38,7 +41,7 @@ void hash_polynomial(P &pol, uint8_t* out)
     @tparam rbytes Size of random value r
     @tparam bbytes Size of random masks
     @tparam HASHSIZE Size of random oracle
-*/ 
+*/
 template<typename P, size_t rbytes, size_t bbytes, size_t HASHSIZE>
 struct alice_rot_t
 {
@@ -54,7 +57,7 @@ struct alice_rot_t
   /** Used for reconciliation with Sender's RLWE sample */
   P kR, skR;
   /**@}*/
-  
+
   /** Type of polynomial coefficients */
   using value_t = typename P::value_type;
   /** Gaussian Noise Sampler */
@@ -136,7 +139,7 @@ struct alice_rot_t
       @param ha0 Commitment to key in channel 0 of KE
       @param ha1 Commitment to key in channel 1 of KE
       @param u Sender's mask
-      @return Returns true when all checks are successful */  
+      @return Returns true when all checks are successful */
   bool msg2(uint8_t Mb[HASHSIZE],
 	    int &b,
 	    uint8_t bS0[bbytes], uint8_t bS1[bbytes],
@@ -171,7 +174,7 @@ struct alice_rot_t
     int sid_size = sizeof(sid);
     uint8_t Mb_sid[sid_size + bbytes];
     memcpy(&Mb_sid[0], &sid, sid_size);
-    
+
     convPtoArray<P, bbytes>(&Mb_sid[sid_size], skR);
 
     if (b1 == 0)
@@ -190,7 +193,7 @@ struct alice_rot_t
       }
 
     blake3(Mb, &Mb_sid[0], sizeof(Mb_sid));
-    
+
     memcpy(bS0, S0, bbytes);
     memcpy(bS1, S1, bbytes);
     return true;
@@ -203,12 +206,12 @@ struct alice_rot_t
     @tparam rbytes Size of random value r
     @tparam bbytes Size of random masks
     @tparam HASHSIZE Size of random oracle
-*/ 
+*/
 template<typename P, size_t rbytes, size_t bbytes, size_t HASHSIZE>
 struct bob_rot_t
 {
   static_assert(HASHSIZE == 32); //since we are using BLAKE
-  
+
   /**@{*/
   /** Used for RLWE sampling */
   P sS, eS, eS1;
@@ -371,7 +374,7 @@ struct bob_rot_t
 
     memcpy(&msg0_sid[0], &sid, sid_size);
     memcpy(&msg1_sid[0], &sid, sid_size);
-    
+
     if (a1 == 0)
       {
 	convPtoArray<P, bbytes>(&msg0_sid[sid_size], skS0);
@@ -394,7 +397,7 @@ struct bob_rot_t
 	    msg1_sid[i + sid_size] ^= S0[i] ^ u[i];
 	  }
       }
-    
+
     blake3(msg0, &msg0_sid[0], sizeof(msg0_sid));
     blake3(msg1, &msg1_sid[0], sizeof(msg1_sid));
 

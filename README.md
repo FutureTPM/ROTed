@@ -15,7 +15,7 @@ In order to run the software the user needs to install multiple
 dependencies. The names of the dependencies will vary by Linux distribution and
 operating system. Some dependencies are optional while others are required for
 the code to build. The optional dependencies are only needed if you intend to
-replicate our experiments. The dependencies versions used in testing are
+replicate our experiments. The versions of the dependencies used in testing are
 in parenthesis. If for some reason the build fails, please try to install
 the versions described prior to opening an issue.
 
@@ -260,9 +260,9 @@ All scripts provide a `-h || --help` flag._
 
 ### Fixing the Frequency on Intel Machines
 
-If you are getting an error when setting the frequencies and you are using
-an Intel machines, please go through these steps prior to opening an issue.
-A fair degree of caution should be taken when following these steps as the
+If you are getting an error when setting a frequency and you are using
+an Intel machine, please go through these steps prior to opening an issue.
+A fair degree of caution should be taken when following these steps, as the
 changes detailed will fundamentally alter how the CPU operates by setting
 a constant frequency. This may be undesireable if, for example,
 you are benchmarking on a laptop. Due to the multitude of configurations
@@ -270,7 +270,7 @@ present on modern machines, we can't provide a specific step-by-step guide
 to everyone. This section only shows the basic steps of fixing the problem.
 
 By default, on Linux, Intel loads a proprietary driver, called `intel_pstate`,
-in order to control the frequencies of each core. This driver goes against
+in order to control the clock frequencies of each core. This driver goes against
 what the scripts provided try to do. Instead the user should use the Linux
 driver `acpi-cpufreq`. To install the driver:
 

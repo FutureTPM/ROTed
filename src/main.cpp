@@ -1,3 +1,49 @@
+/*! \mainpage Lattice-Based Random Oblivious Transfer
+ *
+ * This repository and source code are the artifact for the paper
+ * "ROTed: Random Oblivious Transfer for embedded devices" to be published at
+ * [TCHES 2021](). As such, we strongly recommend reading the paper before using
+ * the software herein.
+ *
+ * The repository contains multiple implementations for random and non-random
+ * oblivious transfer (OT) algorithms. All code should build on ARM and x86
+ * machines.
+ *
+ * \section folder Folder Structure
+ *
+ * * `include`, `pvw` and `src` contain our implementations.
+ * * `thirdparty` contains third-party libraries which are needed to build the
+ * project.
+ * * `utils` contains utilities scripts to ease certain tasks
+ *
+ * \section code Code Overview
+ *
+ * There are 4 relevant folders: `nfl`, `include`, `pvw`, and `src`.
+ *
+ * [NFLlib](https://github.com/quarkslab/NFLlib) is the backend used to perform
+ * lattice arithmetic. We have modified `nfl` in order to support an AVX512
+ * backend for x86 architectures and an NEON
+ * backend for ARM architectures. Specifically we added the files
+ * [avx512.hpp](nfl/include/nfl/opt/arch/avx512.hpp) and
+ * [neon.hpp](nfl/include/nfl/opt/arch/neon.hpp) to `nfl/include/nfl/opt/arch/`.
+ * We added the backend support to the operations in
+ * [ops.hpp](nfl/include/nfl/ops.hpp) and architectural support in
+ * [arch.hpp](nfl/include/nfl/arch.hpp). The cmake script was also modified in
+ * order to support the new backends.
+ *
+ * `include` contains all of the data structures used in order to run the proposed
+ * ROTs and OTs. The OT implementation is in [rlweot.hpp](include/rlweot.hpp), and
+ * the ROT implementation is in [rlwerot.hpp](include/rlwerot.hpp). The random
+ * oracle implementations are in [roms.hpp](include/roms.hpp). All
+ * implementations are templated in order to facilitate parameters
+ * modifications without sacrificing performance.
+ *
+ * `pvw` contains the implementation for the PVW08 proposal. The
+ * implementation uses OpenSSL as a backend for elliptic curve arithmetic.
+ *
+ * `src` contains the instantiation and tests for the proposed OT and ROT
+ * implementations.
+ */
 #include <CUnit/Basic.h>
 #include "rlweke.hpp"
 #include "rlweot.hpp"

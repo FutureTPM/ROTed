@@ -110,6 +110,11 @@ export PATH=$HOME/.cargo/bin:$PATH
 
 ## Getting Started
 
+:warning: If you downloaded this zip file from the artifact CHES website,
+you don't need to initialize the repository. All thirdparty software,
+barring the dependencies described in the previous section, is already
+available in the folder `thirdparty`.
+
 After installing all required dependencies, initialize the repo by running:
 
 ```bash

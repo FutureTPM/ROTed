@@ -117,6 +117,9 @@ After installing all required dependencies, initialize the repo by running:
 
 (Make sure you execute `init-repo.sh` at the root of the artifact.)
 
+:warning: This repository relies on submodules to pull its dependencies.
+Therefore, you will need an active internet connection to run `init-repo.sh`.
+
 Our implementations depend on [BLAKE3](https://github.com/BLAKE3-team/BLAKE3).
 The `init-repo.sh` will initialize this dependency and connect it to our build
 system.

@@ -14,7 +14,7 @@ find_package(Boost REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 add_subdirectory(thirdparty/nfl)
-add_subdirectory(rel_art)
+add_subdirectory(pvw)
 add_subdirectory(thirdparty/BLAKE3/c)
 
 include_directories(include thirdparty/nfl/include

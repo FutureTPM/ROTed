@@ -153,7 +153,7 @@ Running the compiled (R)OT:
 ```
 To run the PVW08 implementation:
 ```bash
-./_builds/rel_art/main_rel
+./_builds/pvw/pvw
 ```
 
 ## Docker
@@ -183,7 +183,7 @@ will be CUnit's output, _i.e._, it will show if any assertions failed.
 
 ## Folder Structure
 
-* `include`, `rel_art` and `src` contain our implementations.
+* `include`, `pvw` and `src` contain our implementations.
 * `thirdparty` contains third-party libraries which are needed to build the
 project.
 * `utils` contains utilities scripts to ease certain tasks
@@ -191,7 +191,7 @@ project.
 ## Code Overview
 
 **If you want to reuse our code you should read this section.**
-There are 4 relevant folders: `nfl`, `include`, `rel_art`, and `src`.
+There are 4 relevant folders: `nfl`, `include`, `pvw`, and `src`.
 
 [NFLlib](https://github.com/quarkslab/NFLlib) is the backend used to perform
 lattice arithmetic. We have modified `nfl` in order to support an AVX512
@@ -211,7 +211,7 @@ oracle implementations are in [roms.hpp](include/roms.hpp). All
 implementations are templated in order to facilitate parameters
 modifications without sacrificing performance.
 
-`rel_art` contains the implementation for the PVW08 proposal. The
+`pvw` contains the implementation for the PVW08 proposal. The
 implementation uses OpenSSL as a backend for elliptic curve arithmetic.
 
 `src` contains the instantiation and tests for the proposed OT and ROT
@@ -334,8 +334,8 @@ SSE4 and AVX2 support), the following binaries were created in the `bin`
 folder, binaries are described in the format
 `Binary name: Name in Paper => Description`:
 
-* `art_ot`: _SotA [PVW08]_ => The PVW08 implementation;
-* `art_ot_rotted`: _SotA [PVW08] ROTted_ => The PVW08 implementation, ROTed;
+* `pvw_ot`: _SotA [PVW08]_ => The PVW08 implementation;
+* `pvw_ot_rotted`: _SotA [PVW08] ROTted_ => The PVW08 implementation, ROTed;
 * `avx2_ot`: _RLWE OT (AVX2)_ => Optimized BDGM19 implementation for AVX2;
 * `avx2_ot_rotted`: _[BDGM19] ROTted (AVX2)_ => Optimized BDGM19 ROTed implementation for AVX2;
 * `avx2_rot`: _RLWE ROT (AVX2)_ => Proposed ROT implementation for AVX2;
@@ -348,8 +348,8 @@ folder, binaries are described in the format
 
 On ARM, the following files are created:
 
-* `art_ot`: _SotA [PVW08]_ => The PVW08 implementation;
-* `art_ot_rotted`: _SotA [PVW08] ROTted_ => The PVW08 implementation, ROTed;
+* `pvw_ot`: _SotA [PVW08]_ => The PVW08 implementation;
+* `pvw_ot_rotted`: _SotA [PVW08] ROTted_ => The PVW08 implementation, ROTed;
 * `neon_ot`: _RLWE OT (NEON)_ => Optimized BDGM19 implementation for NEON;
 * `neon_ot_rotted`: _[BDGM19] ROTted (NEON)_ => Optimized BDGM19 ROTed implementation for NEON;
 * `neon_rot`: _RLWE ROT (NEON)_ => Proposed ROT implementation for NEON;
@@ -384,11 +384,11 @@ Benchmark #6: ./sse_ot
   Time (mean ± σ):      37.7 ms ±   0.5 ms    [User: 36.9 ms, System: 0.9 ms]
   Range (min … max):    37.5 ms …  48.7 ms    1000 runs
 
-Benchmark #7: ./art_ot
+Benchmark #7: ./pvw_ot
   Time (mean ± σ):     491.3 ms ±   8.0 ms    [User: 489.4 ms, System: 1.4 ms]
   Range (min … max):   483.2 ms … 574.4 ms    1000 runs
 
-Benchmark #8: ./art_ot_rotted
+Benchmark #8: ./pvw_ot_rotted
   Time (mean ± σ):     491.3 ms ±  10.4 ms    [User: 489.3 ms, System: 1.5 ms]
   Range (min … max):   485.0 ms … 651.3 ms    1000 runs
 
@@ -414,8 +414,8 @@ Summary
     1.19 ± 0.04 times faster than './serial_rot'
     1.24 ± 0.05 times faster than './serial_ot'
     1.26 ± 0.04 times faster than './serial_ot_rotted'
-   14.29 ± 0.54 times faster than './art_ot_rotted'
-   14.29 ± 0.51 times faster than './art_ot'
+   14.29 ± 0.54 times faster than './pvw_ot_rotted'
+   14.29 ± 0.51 times faster than './pvw_ot'
 ```
 
 With these results and the (R)OTs/s equation from the previous subsection
@@ -444,7 +444,7 @@ kernel.
 # OpenSSL Compilation Error
 
 If you are using an old version of OpenSSL, you will get a compilation error
-when compiling the PVW08 (`rel_art`) implementation.
+when compiling the PVW08 (`pvw`) implementation.
 
 You can apply the following [patch](utils/openssl_old.patch) in order to fix
 it.

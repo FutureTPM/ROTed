@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(rel_art CXX)
+project(pvw CXX)
 
 find_package(OpenSSL REQUIRED)
 find_package(Boost REQUIRED)
@@ -14,5 +14,5 @@ install(FILES ${RELART_HDRS_0} DESTINATION include)
 
 file(GLOB RELART_SRC_0 src/*)
 
-add_executable(main_rel ${RELART_SRC_0})
-target_link_libraries(main_rel blake3_static ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${CUNIT_LIBRARY})
+add_executable(pvw ${RELART_SRC_0})
+target_link_libraries(pvw blake3_static ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${CUNIT_LIBRARY})

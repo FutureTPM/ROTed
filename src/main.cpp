@@ -37,7 +37,8 @@
  * modifications without sacrificing performance.
  *
  * `pvw` contains the implementation for the PVW08 proposal. The
- * implementation uses OpenSSL as a backend for elliptic curve arithmetic.
+ * implementation uses OpenSSL as a backend for elliptic curve arithmetic. The
+ * OT implementation is in ddhot.hpp.
  *
  * `src` contains the instantiation and tests for the proposed OT and ROT
  * implementations.

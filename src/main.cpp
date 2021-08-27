@@ -1,8 +1,9 @@
 /*! \mainpage Lattice-Based Random Oblivious Transfer
  *
  * This repository and source code are the artifact for the paper
- * "ROTed: Random Oblivious Transfer for embedded devices" to be published at
- * [TCHES 2021](). As such, we strongly recommend reading the paper before using
+ * "ROTed: Random Oblivious Transfer for embedded devices" published at
+ * [TCHES 2021](https://tches.iacr.org/index.php/TCHES/article/view/9065).
+ * As such, we strongly recommend reading the paper before using
  * the software herein.
  *
  * The repository contains multiple implementations for random and non-random

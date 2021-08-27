@@ -24,17 +24,15 @@
  * lattice arithmetic. We have modified `nfl` in order to support an AVX512
  * backend for x86 architectures and an NEON
  * backend for ARM architectures. Specifically we added the files
- * [avx512.hpp](nfl/include/nfl/opt/arch/avx512.hpp) and
- * [neon.hpp](nfl/include/nfl/opt/arch/neon.hpp) to `nfl/include/nfl/opt/arch/`.
- * We added the backend support to the operations in
- * [ops.hpp](nfl/include/nfl/ops.hpp) and architectural support in
- * [arch.hpp](nfl/include/nfl/arch.hpp). The cmake script was also modified in
+ * avx512.hpp and neon.hpp to `nfl/include/nfl/opt/arch/`.
+ * We added the backend support to the operations in ops.hpp and architectural
+ * support in arch.hpp. The cmake script was also modified in
  * order to support the new backends.
  *
  * `include` contains all of the data structures used in order to run the proposed
- * ROTs and OTs. The OT implementation is in [rlweot.hpp](include/rlweot.hpp), and
- * the ROT implementation is in [rlwerot.hpp](include/rlwerot.hpp). The random
- * oracle implementations are in [roms.hpp](include/roms.hpp). All
+ * ROTs and OTs. The OT implementation is in rlweot.hpp, and
+ * the ROT implementation is in rlwerot.hpp. The random
+ * oracle implementations are in roms.hpp. All
  * implementations are templated in order to facilitate parameters
  * modifications without sacrificing performance.
  *

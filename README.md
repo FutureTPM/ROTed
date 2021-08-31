@@ -200,7 +200,7 @@ project.
 ## Code Overview
 
 **If you want to reuse our code you should read this section.**
-There are 4 relevant folders: `nfl`, `include`, `pvw`, and `src`.
+There are 4 relevant folders: `thirdparty/nfl`, `include`, `pvw`, and `src`.
 
 [NFLlib](https://github.com/quarkslab/NFLlib) is the backend used to perform
 lattice arithmetic. We have modified `nfl` in order to support an AVX512
@@ -482,5 +482,11 @@ favorite browser.
 
 ## License
 
-The code in this repository can be used under the MIT license. For more
-information, please refer to the [license](LICENSE) file.
+The code in this repository, with the exception of the `thirdparty` folder,
+can be used under the MIT license. For more information, please refer to
+the [license](LICENSE) file.
+
+The code in the `thirdparty` folder can be used under the licenses:
+* NFL -> [GPL3](thirdparty/nfl/LICENSE.txt)
+* scripts-common -> [GPL3](thirdparty/scripts-common/LICENSE)
+* BLAKE3 -> [Apache2](thirdparty/BLAKE3/LICENSE)
